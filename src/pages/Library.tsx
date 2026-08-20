@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Trash2 } from 'lucide-react'
-import { db } from '@/db/schema'
+import { Pencil, Trash2 } from 'lucide-react'
+import { db, type Phrase, type Word } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { EditItemDialog } from '@/components/library/EditItemDialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 export function Library() {
   const { selectedPairId } = useLanguagePairStore()
   const [search, setSearch] = useState('')
+  const [editingWord, setEditingWord] = useState<Word | null>(null)
+  const [editingPhrase, setEditingPhrase] = useState<Phrase | null>(null)
 
   const words = useLiveQuery(
     () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).toArray() : []),
@@ -68,14 +71,24 @@ export function Library() {
                         ))}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Delete word"
-                      onClick={() => db.words.delete(w.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Edit word"
+                        onClick={() => setEditingWord(w)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Delete word"
+                        onClick={() => db.words.delete(w.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -100,14 +113,24 @@ export function Library() {
                         ))}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Delete phrase"
-                      onClick={() => db.phrases.delete(p.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Edit phrase"
+                        onClick={() => setEditingPhrase(p)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Delete phrase"
+                        onClick={() => db.phrases.delete(p.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -116,6 +139,30 @@ export function Library() {
             </TabsContent>
           </Tabs>
         </>
+      )}
+
+      {editingWord && (
+        <EditItemDialog
+          open={!!editingWord}
+          onOpenChange={(open) => !open && setEditingWord(null)}
+          textLabel="Word"
+          initialText={editingWord.term}
+          initialTranslations={editingWord.translations}
+          onSave={(term, translations) => db.words.update(editingWord.id, { term, translations })}
+        />
+      )}
+
+      {editingPhrase && (
+        <EditItemDialog
+          open={!!editingPhrase}
+          onOpenChange={(open) => !open && setEditingPhrase(null)}
+          textLabel="Phrase"
+          initialText={editingPhrase.phrase}
+          initialTranslations={editingPhrase.translations}
+          onSave={(phrase, translations) =>
+            db.phrases.update(editingPhrase.id, { phrase, translations })
+          }
+        />
       )}
     </div>
   )
