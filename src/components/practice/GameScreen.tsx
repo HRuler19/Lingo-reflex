@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PracticeItem } from '@/lib/practice'
 import {
@@ -8,6 +9,7 @@ import {
 } from '@/hooks/use-practice-session'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 interface GameScreenProps {
   pool: PracticeItem[]
@@ -30,6 +32,7 @@ export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
     wrongCount,
     shake,
     submitAnswer,
+    endEarly,
   } = usePracticeSession({ pool, config, onFinish })
 
   const [value, setValue] = useState('')
@@ -50,7 +53,12 @@ export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Time Left</span>
-          <span className="font-mono">{formatClock(sessionSecondsLeft)}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono">{formatClock(sessionSecondsLeft)}</span>
+            <Button variant="ghost" size="icon-xs" aria-label="End session" onClick={endEarly}>
+              <X className="size-3.5" />
+            </Button>
+          </div>
         </div>
         <Progress value={(sessionSecondsLeft / config.totalDurationSec) * 100} />
       </div>
@@ -87,7 +95,7 @@ export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
-        Enter to submit · Esc to end session
+        Enter to submit · Esc (or ✕ above) to end session
       </p>
     </div>
   )

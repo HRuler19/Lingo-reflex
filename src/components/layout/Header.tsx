@@ -21,7 +21,7 @@ export function Header() {
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-      <SidebarTrigger />
+      <SidebarTrigger aria-label="Toggle sidebar" />
       <Separator orientation="vertical" className="h-6" />
 
       <Select value={selectedPairId ?? ''} onValueChange={selectPair}>

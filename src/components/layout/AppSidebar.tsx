@@ -10,11 +10,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { NAV_ITEMS } from './nav-items'
 
 export function AppSidebar() {
   const { pathname } = useLocation()
+  const { isMobile, setOpenMobile } = useSidebar()
 
   return (
     <Sidebar collapsible="icon">
@@ -40,6 +42,7 @@ export function AppSidebar() {
                       render={<Link to={item.path} />}
                       isActive={isActive}
                       tooltip={item.title}
+                      onClick={() => isMobile && setOpenMobile(false)}
                     >
                       <item.icon />
                       <span>{item.title}</span>
