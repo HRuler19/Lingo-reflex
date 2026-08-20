@@ -1,5 +1,24 @@
 import type { GameSession, Phrase, Word } from '@/db/schema'
 
+export type DashboardFilter = 'Day' | 'Week' | 'Month' | 'Year' | 'All Time'
+
+const FILTER_WINDOW_MS: Record<Exclude<DashboardFilter, 'All Time'>, number> = {
+  Day: 24 * 60 * 60 * 1000,
+  Week: 7 * 24 * 60 * 60 * 1000,
+  Month: 30 * 24 * 60 * 60 * 1000,
+  Year: 365 * 24 * 60 * 60 * 1000,
+}
+
+/** Sessions within the trailing window for the selected Dashboard filter. */
+export function filterSessionsByPeriod(
+  sessions: GameSession[],
+  filter: DashboardFilter,
+): GameSession[] {
+  if (filter === 'All Time') return sessions
+  const cutoff = Date.now() - FILTER_WINDOW_MS[filter]
+  return sessions.filter((session) => session.timestamp >= cutoff)
+}
+
 export interface DailyActivity {
   date: string // YYYY-MM-DD
   count: number

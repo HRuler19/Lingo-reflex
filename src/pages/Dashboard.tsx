@@ -1,15 +1,22 @@
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Flame, Percent, BookOpen, MessageSquareText, Clock } from 'lucide-react'
 import { db } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
-import { buildActivityHeatmapData, buildMasteryData, buildTrendData } from '@/lib/analytics'
+import {
+  buildActivityHeatmapData,
+  buildMasteryData,
+  buildTrendData,
+  filterSessionsByPeriod,
+  type DashboardFilter,
+} from '@/lib/analytics'
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
 import { TrendLineChart } from '@/components/dashboard/TrendLineChart'
 import { MasteryChart } from '@/components/dashboard/MasteryChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-const FILTERS = ['Day', 'Week', 'Month', 'Year', 'All Time'] as const
+const FILTERS: DashboardFilter[] = ['Day', 'Week', 'Month', 'Year', 'All Time']
 
 function KpiCard({
   icon: Icon,
@@ -57,6 +64,7 @@ function computeDayStreak(sessions: { timestamp: number }[]): number {
 
 export function Dashboard() {
   const { selectedPairId } = useLanguagePairStore()
+  const [filter, setFilter] = useState<DashboardFilter>('All Time')
 
   const wordCount = useLiveQuery(
     () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).count() : 0),
@@ -79,21 +87,26 @@ export function Dashboard() {
     [selectedPairId],
   )
 
-  const totalPracticeSec = sessions?.reduce((sum, s) => sum + s.usedDurationSec, 0) ?? 0
-  const totalCorrect = sessions?.reduce((sum, s) => sum + s.correctCount, 0) ?? 0
-  const totalAttempts = sessions?.reduce((sum, s) => sum + s.correctCount + s.wrongCount, 0) ?? 0
+  // The Day/Week/Month/Year/All Time filter scopes the session-derived KPIs
+  // and trend charts. The heatmap always shows its own fixed 13-week window,
+  // and the day streak is inherently "as of today", so neither reacts to it.
+  const filteredSessions = filterSessionsByPeriod(sessions ?? [], filter)
+
+  const totalPracticeSec = filteredSessions.reduce((sum, s) => sum + s.usedDurationSec, 0)
+  const totalCorrect = filteredSessions.reduce((sum, s) => sum + s.correctCount, 0)
+  const totalAttempts = filteredSessions.reduce((sum, s) => sum + s.correctCount + s.wrongCount, 0)
   const accuracy = totalAttempts ? Math.round((totalCorrect / totalAttempts) * 100) : 0
   const dayStreak = computeDayStreak(sessions ?? [])
 
   const heatmapData = buildActivityHeatmapData(sessions ?? [])
-  const trendData = buildTrendData(sessions ?? [])
+  const trendData = buildTrendData(filteredSessions)
   const masteryData = buildMasteryData(words ?? [], phrases ?? [])
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-        <Tabs defaultValue="All Time">
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as DashboardFilter)}>
           <TabsList>
             {FILTERS.map((f) => (
               <TabsTrigger key={f} value={f}>
@@ -135,7 +148,7 @@ export function Dashboard() {
                 valueLabel="Accuracy"
                 formatValue={(v) => `${v}%`}
                 yDomain={[0, 100]}
-                emptyLabel="No sessions yet"
+                emptyLabel={filter === 'All Time' ? 'No sessions yet' : `No sessions in the last ${filter.toLowerCase()}`}
               />
             </div>
             <div>
@@ -145,7 +158,7 @@ export function Dashboard() {
                 dataKey="avgResponseMs"
                 valueLabel="Avg. response"
                 formatValue={(v) => `${(v / 1000).toFixed(1)}s`}
-                emptyLabel="No sessions yet"
+                emptyLabel={filter === 'All Time' ? 'No sessions yet' : `No sessions in the last ${filter.toLowerCase()}`}
               />
             </div>
           </CardContent>
