@@ -40,6 +40,10 @@ interface UsePracticeSessionArgs {
  */
 export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessionArgs) {
   const [currentItem, setCurrentItem] = useState<PracticeItem | null>(null)
+  // A small pool cycles, so the same item can come up twice in a row —
+  // `currentItem.id` alone isn't a safe React key for "this is a new turn".
+  // This counter always changes, one nextItem() call at a time.
+  const [itemSeq, setItemSeq] = useState(0)
   const [sessionSecondsLeft, setSessionSecondsLeft] = useState(config.totalDurationSec)
   const [itemSecondsLeft, setItemSecondsLeft] = useState(config.timePerItemSec)
   const [correctCount, setCorrectCount] = useState(0)
@@ -69,6 +73,7 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
     itemStartRef.current = Date.now()
     itemSecondsLeftRef.current = config.timePerItemSec
     setCurrentItem(item)
+    setItemSeq((n) => n + 1)
     setItemSecondsLeft(config.timePerItemSec)
   }, [pool, config.timePerItemSec])
 
@@ -173,6 +178,7 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
 
   return {
     currentItem,
+    itemSeq,
     sessionSecondsLeft,
     itemSecondsLeft,
     correctCount,

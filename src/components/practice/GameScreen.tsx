@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PracticeItem } from '@/lib/practice'
@@ -23,9 +23,47 @@ function formatClock(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
+interface AnswerFormProps {
+  shake: boolean
+  onSubmit: (value: string) => void
+}
+
+/**
+ * Owns its own input value so a fresh instance (keyed by item id in the
+ * parent) resets and refocuses on every new prompt for free, instead of an
+ * effect reaching back to clear state imperatively.
+ */
+function AnswerForm({ shake, onSubmit }: AnswerFormProps) {
+  const [value, setValue] = useState('')
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    onSubmit(value)
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full">
+      <Input
+        autoFocus
+        autoComplete="off"
+        autoCapitalize="off"
+        spellCheck={false}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Type the translation…"
+        className={cn(
+          'h-12 text-center text-lg',
+          shake && 'border-destructive ring-3 ring-destructive/20',
+        )}
+      />
+    </form>
+  )
+}
+
 export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
   const {
     currentItem,
+    itemSeq,
     sessionSecondsLeft,
     itemSecondsLeft,
     correctCount,
@@ -34,19 +72,6 @@ export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
     submitAnswer,
     endEarly,
   } = usePracticeSession({ pool, config, onFinish })
-
-  const [value, setValue] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    setValue('')
-    inputRef.current?.focus()
-  }, [currentItem])
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    submitAnswer(value)
-  }
 
   return (
     <div className="mx-auto flex h-full max-w-lg flex-col gap-8">
@@ -71,22 +96,7 @@ export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
       <div className="flex flex-1 flex-col items-center justify-center gap-6">
         <span className="text-3xl font-bold tracking-tight">{currentItem?.prompt ?? '…'}</span>
 
-        <form onSubmit={handleSubmit} className="w-full">
-          <Input
-            ref={inputRef}
-            autoFocus
-            autoComplete="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="Type the translation…"
-            className={cn(
-              'h-12 text-center text-lg',
-              shake && 'border-destructive ring-3 ring-destructive/20',
-            )}
-          />
-        </form>
+        <AnswerForm key={itemSeq} shake={shake} onSubmit={submitAnswer} />
 
         <Progress
           value={(itemSecondsLeft / config.timePerItemSec) * 100}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -24,18 +24,12 @@ export function EditItemDialog({
   initialTranslations,
   onSave,
 }: EditItemDialogProps) {
+  // Initial-only: the caller mounts a fresh EditItemDialog per item (see the
+  // `key` on its call sites), so there's no case where `initialText` etc.
+  // change under an already-mounted instance that would need re-syncing.
   const [text, setText] = useState(initialText)
   const [translations, setTranslations] = useState(initialTranslations)
   const [newTranslation, setNewTranslation] = useState('')
-
-  // Reset the form each time the dialog opens for a (possibly different) item.
-  useEffect(() => {
-    if (open) {
-      setText(initialText)
-      setTranslations(initialTranslations)
-      setNewTranslation('')
-    }
-  }, [open, initialText, initialTranslations])
 
   function addTranslation() {
     const value = newTranslation.trim()

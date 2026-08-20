@@ -143,6 +143,7 @@ export function Library() {
 
       {editingWord && (
         <EditItemDialog
+          key={editingWord.id}
           open={!!editingWord}
           onOpenChange={(open) => !open && setEditingWord(null)}
           textLabel="Word"
@@ -154,6 +155,7 @@ export function Library() {
 
       {editingPhrase && (
         <EditItemDialog
+          key={editingPhrase.id}
           open={!!editingPhrase}
           onOpenChange={(open) => !open && setEditingPhrase(null)}
           textLabel="Phrase"
