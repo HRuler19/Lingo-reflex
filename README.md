@@ -23,6 +23,8 @@ npm install
 npm run dev      # start the dev server
 npm run build    # typecheck + production build
 npm run lint      # oxlint
+npm run test      # run the Vitest suite once
+npm run test:watch  # ...or in watch mode
 ```
 
 ## Project layout
