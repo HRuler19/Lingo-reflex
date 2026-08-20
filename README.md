@@ -1,32 +1,67 @@
-# React + TypeScript + Vite
+# LexiPulse
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+LexiPulse is a local-first, offline-capable, serverless vocabulary and phrase
+trainer. It combines active recall with time-pressured typing practice
+("Practice Arena") and tracks progress entirely in the browser — there is no
+backend and no account; everything lives in IndexedDB.
 
-Currently, two official plugins are available:
+The full product specification lives in [Doc.md](./Doc.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+- **Framework:** React 19 + TypeScript, built with Vite
+- **Routing:** react-router
+- **Styling / UI:** Tailwind CSS v4 + shadcn/ui (Base UI primitives)
+- **State:** Zustand (theme, active language pair)
+- **Database:** Dexie.js over IndexedDB — see [src/db/schema.ts](./src/db/schema.ts)
+- **Charts:** Recharts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting started
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # start the dev server
+npm run build    # typecheck + production build
+npm run lint      # oxlint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Project layout
+
+```
+src/
+  db/schema.ts          Dexie database: language pairs, words, phrases, sessions
+  store/                 Zustand stores (theme, active language pair)
+  lib/
+    practice.ts          Practice Arena pool building / answer checking
+    analytics.ts          Dashboard chart/KPI data derivation
+    csv.ts, backup.ts     JSON/CSV export & import
+  hooks/
+    use-practice-session.ts  Practice Arena game loop (timers, scoring)
+  components/
+    layout/               Sidebar + header app shell
+    dashboard/             Chart components
+    practice/               Pre-game config, game screen, results
+    library/                Word/phrase edit dialog
+    ui/                     shadcn/ui primitives
+  pages/                  One file per route (Dashboard, Add Word, Add Phrase,
+                          Practice Arena, Library, Settings)
+```
+
+## Data model
+
+Everything is scoped to a **language pair** (e.g. English → Turkmen). Words
+and phrases each carry a list of accepted translations and a running
+correct/wrong count; a completed Practice Arena session is stored as a
+`GameSession` record and rolls its per-item outcomes back into those counts.
+See [src/db/schema.ts](./src/db/schema.ts) for the exact shape.
+
+## Data portability
+
+Settings → Data Portability supports:
+
+- **JSON** — a full backup (every pair, word, phrase, session) for restoring
+  on this same app.
+- **CSV** — words and phrases only, keyed by language name rather than
+  internal id, for moving vocabulary to or from spreadsheets and other
+  tools. Language pairs are matched or created by name on import, and
+  matching words/phrases are merged rather than duplicated.
