@@ -24,9 +24,14 @@ export function Header() {
       <SidebarTrigger />
       <Separator orientation="vertical" className="h-6" />
 
-      <Select value={selectedPairId ?? undefined} onValueChange={selectPair}>
+      <Select value={selectedPairId ?? ''} onValueChange={selectPair}>
         <SelectTrigger className="w-48" size="sm">
-          <SelectValue placeholder="Select language pair" />
+          <SelectValue placeholder="Select language pair">
+            {(value: string) => {
+              const pair = pairs?.find((p) => p.id === value)
+              return pair ? `${pair.sourceLanguage} → ${pair.targetLanguage}` : 'Select language pair'
+            }}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {pairs?.length ? (

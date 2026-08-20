@@ -1,58 +1,109 @@
 import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { Zap } from 'lucide-react'
+import { db, newId } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
+import { buildPracticePool, type PracticeItem } from '@/lib/practice'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  type ItemOutcome,
+  type PracticeConfig,
+  type SessionResult,
+} from '@/hooks/use-practice-session'
+import { PreGameConfig } from '@/components/practice/PreGameConfig'
+import { GameScreen } from '@/components/practice/GameScreen'
+import { ResultView } from '@/components/practice/ResultView'
 
-const GAME_TYPES = ['Words Only', 'Phrases Only', 'Hybrid'] as const
-const DIRECTIONS = ['Source → Target', 'Target → Source'] as const
-const DURATIONS = ['3m', '5m', '10m', '15m', '30m', '1h'] as const
-const PER_ITEM_LIMITS = ['5s', '10s', '20s', '30s', '1m'] as const
+type Phase = 'config' | 'playing' | 'results'
 
-function ConfigField({
-  label,
-  options,
-}: {
-  label: string
-  options: readonly string[]
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Label>{label}</Label>
-      <Select defaultValue={options[0]}>
-        <SelectTrigger>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt} value={opt}>
-              {opt}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  )
+async function applyOutcomesToStats(outcomes: ItemOutcome[]) {
+  const deltas = new Map<string, { kind: ItemOutcome['kind']; correct: number; wrong: number }>()
+  for (const outcome of outcomes) {
+    const delta = deltas.get(outcome.id) ?? { kind: outcome.kind, correct: 0, wrong: 0 }
+    if (outcome.correct) delta.correct += 1
+    else delta.wrong += 1
+    deltas.set(outcome.id, delta)
+  }
+
+  await db.transaction('rw', db.words, db.phrases, async () => {
+    for (const [id, delta] of deltas) {
+      const table = delta.kind === 'word' ? db.words : db.phrases
+      const record = await table.get(id)
+      if (!record) continue
+      await table.update(id, {
+        stats: {
+          correct: record.stats.correct + delta.correct,
+          wrong: record.stats.wrong + delta.wrong,
+        },
+      })
+    }
+  })
 }
 
 export function PracticeArena() {
   const { selectedPairId } = useLanguagePairStore()
-  const [started] = useState(false)
+  const [phase, setPhase] = useState<Phase>('config')
+  const [config, setConfig] = useState<PracticeConfig | null>(null)
+  const [pool, setPool] = useState<PracticeItem[] | null>(null)
+  const [result, setResult] = useState<SessionResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  if (started) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 text-muted-foreground">
-        Game screen coming soon.
-      </div>
-    )
+  const words = useLiveQuery(
+    () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).toArray() : []),
+    [selectedPairId],
+  )
+  const phrases = useLiveQuery(
+    () => (selectedPairId ? db.phrases.where('pairId').equals(selectedPairId).toArray() : []),
+    [selectedPairId],
+  )
+
+  function handleStart(cfg: PracticeConfig) {
+    const builtPool = buildPracticePool(words ?? [], phrases ?? [], cfg.mode, cfg.direction)
+    if (builtPool.length === 0) {
+      setError('Add some words or phrases for this game type before starting.')
+      return
+    }
+    setError(null)
+    setConfig(cfg)
+    setPool(builtPool)
+    setPhase('playing')
+  }
+
+  async function handleFinish(sessionResult: SessionResult) {
+    setResult(sessionResult)
+    setPhase('results')
+    if (!selectedPairId || !config) return
+
+    await db.sessions.add({
+      id: newId('s'),
+      pairId: selectedPairId,
+      mode: config.mode,
+      direction: config.direction,
+      totalDurationSec: sessionResult.totalDurationSec,
+      usedDurationSec: sessionResult.usedDurationSec,
+      timePerItemSec: sessionResult.timePerItemSec,
+      totalItems: sessionResult.totalItems,
+      correctCount: sessionResult.correctCount,
+      wrongCount: sessionResult.wrongCount,
+      avgResponseTimeMs: sessionResult.avgResponseTimeMs,
+      timestamp: Date.now(),
+    })
+
+    await applyOutcomesToStats(sessionResult.outcomes)
+  }
+
+  function handleRestart() {
+    setPhase('config')
+    setConfig(null)
+    setPool(null)
+    setResult(null)
+  }
+
+  if (phase === 'playing' && config && pool) {
+    return <GameScreen pool={pool} config={config} onFinish={handleFinish} />
+  }
+
+  if (phase === 'results' && result) {
+    return <ResultView result={result} onRestart={handleRestart} />
   }
 
   return (
@@ -67,20 +118,7 @@ export function PracticeArena() {
         </p>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Pre-Game Configuration</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <ConfigField label="Game Type" options={GAME_TYPES} />
-          <ConfigField label="Direction" options={DIRECTIONS} />
-          <ConfigField label="Session Duration" options={DURATIONS} />
-          <ConfigField label="Per-Item Time Limit" options={PER_ITEM_LIMITS} />
-          <Button disabled={!selectedPairId} className="mt-2">
-            Start Session
-          </Button>
-        </CardContent>
-      </Card>
+      <PreGameConfig disabled={!selectedPairId} error={error} onStart={handleStart} />
     </div>
   )
 }

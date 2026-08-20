@@ -21,6 +21,9 @@
     --color-chart-3: var(--chart-3);
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
+    --color-chart-accent: var(--chart-accent);
+    --color-success: var(--success);
+    --color-info: var(--info);
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -72,6 +75,12 @@
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
+    --chart-accent: #7c3aed;
+    /* success/info are a fixed status pair for chart series: green = correct,
+       blue = wrong. Blue (not red) is used so the pair stays distinguishable
+       for deuteranopia/protanopia — see references/color-formula.md. */
+    --success: #16a34a;
+    --info: #2563eb;
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
@@ -107,6 +116,9 @@
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
+    --chart-accent: #a78bfa;
+    --success: #16a34a;
+    --info: #3b82f6;
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.488 0.243 264.376);

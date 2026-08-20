@@ -2,6 +2,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Flame, Percent, BookOpen, MessageSquareText, Clock } from 'lucide-react'
 import { db } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { buildActivityHeatmapData, buildMasteryData, buildTrendData } from '@/lib/analytics'
+import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
+import { TrendLineChart } from '@/components/dashboard/TrendLineChart'
+import { MasteryChart } from '@/components/dashboard/MasteryChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -29,6 +33,28 @@ function KpiCard({
   )
 }
 
+/** Consecutive days (ending today or yesterday) with at least one session. */
+function computeDayStreak(sessions: { timestamp: number }[]): number {
+  if (sessions.length === 0) return 0
+  const days = new Set(
+    sessions.map((s) => {
+      const d = new Date(s.timestamp)
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+    }),
+  )
+  const cursor = new Date()
+  let streak = 0
+  // Allow the streak to still count if today has no session yet but yesterday does.
+  if (!days.has(`${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`)) {
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  while (days.has(`${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`)) {
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
+}
+
 export function Dashboard() {
   const { selectedPairId } = useLanguagePairStore()
 
@@ -40,6 +66,14 @@ export function Dashboard() {
     () => (selectedPairId ? db.phrases.where('pairId').equals(selectedPairId).count() : 0),
     [selectedPairId],
   )
+  const words = useLiveQuery(
+    () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).toArray() : []),
+    [selectedPairId],
+  )
+  const phrases = useLiveQuery(
+    () => (selectedPairId ? db.phrases.where('pairId').equals(selectedPairId).toArray() : []),
+    [selectedPairId],
+  )
   const sessions = useLiveQuery(
     () => (selectedPairId ? db.sessions.where('pairId').equals(selectedPairId).toArray() : []),
     [selectedPairId],
@@ -47,9 +81,13 @@ export function Dashboard() {
 
   const totalPracticeSec = sessions?.reduce((sum, s) => sum + s.usedDurationSec, 0) ?? 0
   const totalCorrect = sessions?.reduce((sum, s) => sum + s.correctCount, 0) ?? 0
-  const totalAttempts =
-    (sessions?.reduce((sum, s) => sum + s.correctCount + s.wrongCount, 0) ?? 0) || 1
-  const accuracy = sessions?.length ? Math.round((totalCorrect / totalAttempts) * 100) : 0
+  const totalAttempts = sessions?.reduce((sum, s) => sum + s.correctCount + s.wrongCount, 0) ?? 0
+  const accuracy = totalAttempts ? Math.round((totalCorrect / totalAttempts) * 100) : 0
+  const dayStreak = computeDayStreak(sessions ?? [])
+
+  const heatmapData = buildActivityHeatmapData(sessions ?? [])
+  const trendData = buildTrendData(sessions ?? [])
+  const masteryData = buildMasteryData(words ?? [], phrases ?? [])
 
   return (
     <div className="flex flex-col gap-6">
@@ -71,7 +109,7 @@ export function Dashboard() {
         <KpiCard icon={MessageSquareText} label="Total Phrases" value={phraseCount ?? 0} />
         <KpiCard icon={Clock} label="Practice Time" value={`${Math.round(totalPracticeSec / 60)}m`} />
         <KpiCard icon={Percent} label="Accuracy" value={`${accuracy}%`} />
-        <KpiCard icon={Flame} label="Day Streak" value={0} />
+        <KpiCard icon={Flame} label="Day Streak" value={dayStreak} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -79,24 +117,46 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="text-sm font-medium">Activity Heatmap</CardTitle>
           </CardHeader>
-          <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-            No activity yet
+          <CardContent>
+            <ActivityHeatmap data={heatmapData} />
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">Accuracy & Speed Trends</CardTitle>
           </CardHeader>
-          <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-            No sessions yet
+          <CardContent className="flex flex-col gap-4">
+            <div>
+              <p className="mb-1 text-xs text-muted-foreground">Accuracy</p>
+              <TrendLineChart
+                data={trendData}
+                dataKey="accuracy"
+                valueLabel="Accuracy"
+                formatValue={(v) => `${v}%`}
+                yDomain={[0, 100]}
+                emptyLabel="No sessions yet"
+              />
+            </div>
+            <div>
+              <p className="mb-1 text-xs text-muted-foreground">Avg. Response Time</p>
+              <TrendLineChart
+                data={trendData}
+                dataKey="avgResponseMs"
+                valueLabel="Avg. response"
+                formatValue={(v) => `${(v / 1000).toFixed(1)}s`}
+                emptyLabel="No sessions yet"
+              />
+            </div>
           </CardContent>
         </Card>
+
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Words vs. Phrases Mastery</CardTitle>
           </CardHeader>
-          <CardContent className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-            No data yet
+          <CardContent>
+            <MasteryChart data={masteryData} />
           </CardContent>
         </Card>
       </div>
