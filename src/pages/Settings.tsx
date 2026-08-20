@@ -1,19 +1,23 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Trash2, Download, Upload, DatabaseZap } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Trash2, Download, Upload, DatabaseZap } from 'lucide-react'
 import { db, newId } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { downloadTextFile, exportCsv, exportJson, importCsv, importJson } from '@/lib/backup'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
+type StatusMessage = { kind: 'success' | 'error'; text: string }
+
 export function Settings() {
   const pairs = useLiveQuery(() => db.languagePairs.toArray(), [])
   const { selectedPairId, selectPair } = useLanguagePairStore()
   const [sourceLang, setSourceLang] = useState('')
   const [targetLang, setTargetLang] = useState('')
+  const [status, setStatus] = useState<StatusMessage | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleAddPair(e: React.FormEvent) {
@@ -40,35 +44,37 @@ export function Settings() {
     if (selectedPairId === id) selectPair(null)
   }
 
-  async function handleExport() {
-    const data = {
-      languagePairs: await db.languagePairs.toArray(),
-      words: await db.words.toArray(),
-      phrases: await db.phrases.toArray(),
-      sessions: await db.sessions.toArray(),
-      exportedAt: Date.now(),
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `lexipulse-backup-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+  async function handleExportJson() {
+    const json = await exportJson()
+    downloadTextFile(json, `lexipulse-backup-${new Date().toISOString().slice(0, 10)}.json`, 'application/json')
+  }
+
+  async function handleExportCsv() {
+    const csv = await exportCsv()
+    downloadTextFile(csv, `lexipulse-export-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv')
   }
 
   async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    const text = await file.text()
-    const data = JSON.parse(text)
-    await db.transaction('rw', db.languagePairs, db.words, db.phrases, db.sessions, async () => {
-      if (data.languagePairs) await db.languagePairs.bulkPut(data.languagePairs)
-      if (data.words) await db.words.bulkPut(data.words)
-      if (data.phrases) await db.phrases.bulkPut(data.phrases)
-      if (data.sessions) await db.sessions.bulkPut(data.sessions)
-    })
-    e.target.value = ''
+    const isCsv = file.name.toLowerCase().endsWith('.csv')
+
+    try {
+      const text = await file.text()
+      if (isCsv) {
+        await importCsv(text)
+      } else {
+        await importJson(text)
+      }
+      setStatus({ kind: 'success', text: `Imported ${file.name} successfully.` })
+    } catch (err) {
+      setStatus({
+        kind: 'error',
+        text: err instanceof Error ? err.message : 'Could not import this file.',
+      })
+    } finally {
+      e.target.value = ''
+    }
   }
 
   async function handleReset() {
@@ -80,6 +86,7 @@ export function Settings() {
       await db.sessions.clear()
     })
     selectPair(null)
+    setStatus(null)
   }
 
   return (
@@ -147,23 +154,52 @@ export function Settings() {
           <CardTitle className="text-sm font-medium">Data Portability</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Button variant="outline" className="justify-start gap-2" onClick={handleExport}>
-            <Download className="size-4" /> Export Data (JSON)
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="justify-start gap-2" onClick={handleExportJson}>
+              <Download className="size-4" /> Export JSON
+            </Button>
+            <Button variant="outline" className="justify-start gap-2" onClick={handleExportCsv}>
+              <Download className="size-4" /> Export CSV
+            </Button>
+          </div>
+
           <Button
             variant="outline"
             className="justify-start gap-2"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="size-4" /> Import Data (JSON)
+            <Upload className="size-4" /> Import Data (JSON or CSV)
           </Button>
           <input
             ref={fileInputRef}
             type="file"
-            accept="application/json"
+            accept="application/json,.json,text/csv,.csv"
             className="hidden"
             onChange={handleImportFile}
           />
+
+          {status && (
+            <div
+              className={`flex items-start gap-2 rounded-md border p-3 text-sm ${
+                status.kind === 'success'
+                  ? 'border-success/30 bg-success/10'
+                  : 'border-destructive/30 bg-destructive/10'
+              }`}
+            >
+              {status.kind === 'success' ? (
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
+              ) : (
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+              )}
+              <span>{status.text}</span>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            JSON is a full backup (every pair, session, and stat) meant for restoring on this same
+            app. CSV holds just words and phrases and is meant for moving vocabulary to or from
+            spreadsheets and other tools.
+          </p>
 
           <Separator className="my-1" />
 
