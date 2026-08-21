@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { CheckCircle2, XCircle, Timer, Target, Trophy } from 'lucide-react'
+import { CheckCircle2, XCircle, Timer, Target } from 'lucide-react'
 import type { SessionResult } from '@/hooks/use-practice-session'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Mascot } from '@/components/Mascot'
 import { cn } from '@/lib/utils'
 
 interface ResultViewProps {
@@ -43,14 +44,15 @@ export function ResultView({ result, onRestart }: ResultViewProps) {
   const accuracy = result.totalItems
     ? Math.round((result.correctCount / result.totalItems) * 100)
     : 0
+  const mood = accuracy >= 70 ? 'excited' : accuracy >= 40 ? 'happy' : 'sad'
+  const headline =
+    accuracy >= 70 ? 'Crushed it!' : accuracy >= 40 ? 'Solid round.' : 'Keep at it!'
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center gap-6 pt-4">
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        <Trophy className="size-7" />
-      </div>
+      <Mascot mood={mood} className="size-24 drop-shadow-[0_8px_20px_color-mix(in_oklch,var(--primary),transparent_65%)]" />
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Session Results</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{headline}</h1>
         <p className="text-sm text-muted-foreground">Here's how that round went.</p>
       </div>
 

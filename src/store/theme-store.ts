@@ -16,7 +16,9 @@ function applyThemeClass(theme: Theme) {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: 'light',
+      // Dark is the "home" look for a speed/arena-themed app — matches the
+      // neon accent palette much better than a light-first default would.
+      theme: 'dark',
       toggleTheme: () => {
         const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
         applyThemeClass(next)

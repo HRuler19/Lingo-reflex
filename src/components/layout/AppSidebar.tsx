@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { GraduationCap } from 'lucide-react'
+import { Mascot } from '@/components/Mascot'
 import {
   Sidebar,
   SidebarContent,
@@ -22,8 +22,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <GraduationCap className="size-5 shrink-0 text-primary" />
-          <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+          <Mascot className="size-7 shrink-0" />
+          <span className="text-sm font-bold tracking-tight group-data-[collapsible=icon]:hidden">
             LexiPulse
           </span>
         </div>

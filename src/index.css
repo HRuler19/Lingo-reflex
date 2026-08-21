@@ -24,6 +24,8 @@
     --color-chart-accent: var(--chart-accent);
     --color-success: var(--success);
     --color-info: var(--info);
+    --color-neon-cyan: var(--neon-cyan);
+    --color-neon-pink: var(--neon-pink);
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -83,7 +85,9 @@
        for deuteranopia/protanopia — see references/color-formula.md. */
     --success: #16a34a;
     --info: #2563eb;
-    --radius: 0.75rem;
+    --neon-cyan: #0891b2;
+    --neon-pink: #db2777;
+    --radius: 0.85rem;
     --sidebar: oklch(0.985 0.003 296);
     --sidebar-foreground: oklch(0.19 0.02 295);
     --sidebar-primary: #7c3aed;
@@ -121,8 +125,10 @@
     --chart-4: oklch(0.439 0 0);
     --chart-5: oklch(0.302 0 0);
     --chart-accent: #a78bfa;
-    --success: #16a34a;
+    --success: #22c55e;
     --info: #3b82f6;
+    --neon-cyan: #22d3ee;
+    --neon-pink: #f472b6;
     --sidebar: oklch(0.185 0.016 295);
     --sidebar-foreground: oklch(0.96 0.006 296);
     --sidebar-primary: #a78bfa;
