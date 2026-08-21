@@ -22,10 +22,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const FILTERS: DashboardFilter[] = ['Day', 'Week', 'Month', 'Year', 'All Time']
 
 const KPI_TINTS = {
-  primary: 'bg-primary text-primary-foreground',
-  info: 'bg-info text-white',
-  success: 'bg-success text-white',
-  flame: 'bg-amber-500 text-white',
+  primary: 'border-primary text-primary',
+  info: 'border-info text-info',
+  success: 'border-success text-success',
+  flame: 'border-amber-500 text-amber-500',
 } as const
 
 function KpiCard({
@@ -42,7 +42,7 @@ function KpiCard({
   return (
     <Card>
       <CardContent className="flex items-center gap-3">
-        <div className={cn('flex size-11 shrink-0 items-center justify-center rounded-2xl', KPI_TINTS[tint])}>
+        <div className={cn('flex size-11 shrink-0 items-center justify-center rounded-2xl border-2', KPI_TINTS[tint])}>
           <Icon className="size-5" />
         </div>
         <div className="flex min-w-0 flex-col">
