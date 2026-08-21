@@ -52,7 +52,6 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
 
   const queueRef = useRef<PracticeItem[]>([])
   const queueIndexRef = useRef(0)
-  const itemSecondsLeftRef = useRef(config.timePerItemSec)
   const itemStartRef = useRef(0)
   const startTimeRef = useRef(0)
   const intervalRef = useRef<number | undefined>(undefined)
@@ -71,7 +70,6 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
     const item = queueRef.current[queueIndexRef.current]
     queueIndexRef.current += 1
     itemStartRef.current = Date.now()
-    itemSecondsLeftRef.current = config.timePerItemSec
     setCurrentItem(item)
     setItemSeq((n) => n + 1)
     setItemSecondsLeft(config.timePerItemSec)
@@ -141,6 +139,11 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
     nextItem()
 
     intervalRef.current = window.setInterval(() => {
+      // Both timers are derived from wall-clock timestamps rather than
+      // decremented per tick, so a throttled/backgrounded tab (which delays
+      // or coalesces setInterval callbacks) can't let them drift apart or
+      // run long — the next tick that does fire always recomputes the true
+      // remaining time from Date.now().
       const elapsedMs = Date.now() - startTimeRef.current
       const sessionRemaining = Math.max(
         0,
@@ -153,11 +156,15 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
         return
       }
 
-      itemSecondsLeftRef.current -= 1
-      if (itemSecondsLeftRef.current <= 0) {
+      const itemElapsedMs = Date.now() - itemStartRef.current
+      const itemRemaining = Math.max(
+        0,
+        config.timePerItemSec - Math.floor(itemElapsedMs / 1000),
+      )
+      if (itemRemaining <= 0) {
         handleTimeout()
       } else {
-        setItemSecondsLeft(itemSecondsLeftRef.current)
+        setItemSecondsLeft(itemRemaining)
       }
     }, 1000)
 
