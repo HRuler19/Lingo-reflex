@@ -54,25 +54,29 @@
 }
 
 :root {
-    --background: oklch(0.995 0.002 300);
-    --foreground: oklch(0.19 0.02 295);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.19 0.02 295);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.19 0.02 295);
+    /* A soft lavender-tinted gray "table," not pure white — so the white
+       cards sitting on it actually read as raised surfaces. */
+    --background: #f6f5fa;
+    --foreground: #3c3a41;
+    --card: #ffffff;
+    --card-foreground: #3c3a41;
+    --popover: #ffffff;
+    --popover-foreground: #3c3a41;
     /* Brand: violet-600, echoed by the favicon/app icon and chart accent —
-       this is the one color that should read as "LexiPulse" everywhere. */
+       this is the one color that should read as "LexiPulse" everywhere.
+       Flat and fully saturated, no gradient — the whole palette below
+       follows that same flat, high-chroma, poster-color logic. */
     --primary: #7c3aed;
     --primary-foreground: #ffffff;
-    --secondary: oklch(0.965 0.006 296);
-    --secondary-foreground: oklch(0.19 0.02 295);
-    --muted: oklch(0.965 0.006 296);
-    --muted-foreground: oklch(0.5 0.02 295);
-    --accent: #f5f3ff;
+    --secondary: #efecf9;
+    --secondary-foreground: #3c3a41;
+    --muted: #efecf9;
+    --muted-foreground: #7a7686;
+    --accent: #efe9ff;
     --accent-foreground: #6d28d9;
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.914 0.008 296);
-    --input: oklch(0.894 0.01 296);
+    --destructive: #ea3939;
+    --border: #e3e0eb;
+    --input: #d9d5e3;
     --ring: #7c3aed;
     --chart-1: #7c3aed;
     --chart-2: oklch(0.556 0 0);
@@ -83,18 +87,18 @@
     /* success/info are a fixed status pair for chart series: green = correct,
        blue = wrong. Blue (not red) is used so the pair stays distinguishable
        for deuteranopia/protanopia — see references/color-formula.md. */
-    --success: #16a34a;
-    --info: #2563eb;
+    --success: #1cb854;
+    --info: #1899e8;
     --neon-cyan: #0891b2;
     --neon-pink: #db2777;
-    --radius: 0.85rem;
-    --sidebar: oklch(0.985 0.003 296);
-    --sidebar-foreground: oklch(0.19 0.02 295);
+    --radius: 1rem;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #3c3a41;
     --sidebar-primary: #7c3aed;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f5f3ff;
+    --sidebar-accent: #efe9ff;
     --sidebar-accent-foreground: #6d28d9;
-    --sidebar-border: oklch(0.914 0.008 296);
+    --sidebar-border: #e3e0eb;
     --sidebar-ring: #7c3aed;
 }
 
@@ -116,7 +120,7 @@
     --accent: oklch(0.26 0.06 295);
     --accent-foreground: #d8ccfd;
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
+    --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 15%);
     --ring: #a78bfa;
     --chart-1: #a78bfa;
@@ -135,7 +139,7 @@
     --sidebar-primary-foreground: #1c1330;
     --sidebar-accent: oklch(0.26 0.06 295);
     --sidebar-accent-foreground: #d8ccfd;
-    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-border: oklch(1 0 0 / 12%);
     --sidebar-ring: #a78bfa;
 }
 

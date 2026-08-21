@@ -16,9 +16,11 @@ function applyThemeClass(theme: Theme) {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      // Dark is the "home" look for a speed/arena-themed app — matches the
-      // neon accent palette much better than a light-first default would.
-      theme: 'dark',
+      // Light is the "home" look: the flat, bright, high-contrast palette
+      // this app is designed around reads best on a white surface, the way
+      // Duolingo's own app does. Dark mode is a fully-supported option, just
+      // not the first impression.
+      theme: 'light',
       toggleTheme: () => {
         const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
         applyThemeClass(next)

@@ -21,6 +21,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const FILTERS: DashboardFilter[] = ['Day', 'Week', 'Month', 'Year', 'All Time']
 
+const KPI_TINTS = {
+  primary: 'bg-primary text-primary-foreground shadow-[0_2px_0_0_color-mix(in_oklch,var(--primary),black_25%)]',
+  info: 'bg-info text-white shadow-[0_2px_0_0_color-mix(in_oklch,var(--info),black_25%)]',
+  success: 'bg-success text-white shadow-[0_2px_0_0_color-mix(in_oklch,var(--success),black_25%)]',
+  flame: 'bg-amber-500 text-white shadow-[0_2px_0_0_color-mix(in_oklch,#f59e0b,black_25%)]',
+} as const
+
 function KpiCard({
   icon: Icon,
   label,
@@ -30,22 +37,17 @@ function KpiCard({
   icon: typeof Flame
   label: string
   value: string | number
-  tint?: 'primary' | 'flame'
+  tint?: keyof typeof KPI_TINTS
 }) {
   return (
     <Card>
       <CardContent className="flex items-center gap-3">
-        <div
-          className={cn(
-            'flex size-10 shrink-0 items-center justify-center rounded-xl',
-            tint === 'flame' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary',
-          )}
-        >
+        <div className={cn('flex size-11 shrink-0 items-center justify-center rounded-2xl', KPI_TINTS[tint])}>
           <Icon className="size-5" />
         </div>
         <div className="flex min-w-0 flex-col">
-          <span className="text-2xl leading-tight font-bold tabular-nums">{value}</span>
-          <span className="truncate text-xs text-muted-foreground">{label}</span>
+          <span className="text-2xl leading-tight font-extrabold tabular-nums">{value}</span>
+          <span className="truncate text-xs font-medium text-muted-foreground">{label}</span>
         </div>
       </CardContent>
     </Card>
@@ -130,9 +132,9 @@ export function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <KpiCard icon={BookOpen} label="Total Words" value={wordCount ?? 0} />
-        <KpiCard icon={MessageSquareText} label="Total Phrases" value={phraseCount ?? 0} />
+        <KpiCard icon={MessageSquareText} label="Total Phrases" value={phraseCount ?? 0} tint="info" />
         <KpiCard icon={Clock} label="Practice Time" value={`${Math.round(totalPracticeSec / 60)}m`} />
-        <KpiCard icon={Percent} label="Accuracy" value={`${accuracy}%`} />
+        <KpiCard icon={Percent} label="Accuracy" value={`${accuracy}%`} tint="success" />
         <KpiCard icon={Flame} label="Day Streak" value={dayStreak} tint="flame" />
       </div>
 
