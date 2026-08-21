@@ -227,6 +227,10 @@ export function downloadTextFile(content: string, filename: string, mimeType: st
   const a = document.createElement('a')
   a.href = url
   a.download = filename
+  // Some browsers (Firefox in particular) only honor a click on an <a> with
+  // `download` set if it's actually attached to the document.
+  document.body.appendChild(a)
   a.click()
+  a.remove()
   URL.revokeObjectURL(url)
 }
