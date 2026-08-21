@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { DailyActivity } from '@/lib/analytics'
+import { getWeekdayOfDateKey, type DailyActivity } from '@/lib/analytics'
 import { ChartEmptyState } from './ChartEmptyState'
 
 // Bucket boundaries for the sequential color ramp: 0, 1, 2, 3-4, 5+ sessions/day.
@@ -21,7 +21,7 @@ interface ActivityHeatmapProps {
 export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   const weeks = useMemo(() => {
     if (data.length === 0) return []
-    const leadingBlanks = new Date(data[0].date).getDay() // 0 = Sunday
+    const leadingBlanks = getWeekdayOfDateKey(data[0].date) // 0 = Sunday
     const padded: (DailyActivity | null)[] = [...Array(leadingBlanks).fill(null), ...data]
     const cols: (DailyActivity | null)[][] = []
     for (let i = 0; i < padded.length; i += 7) {

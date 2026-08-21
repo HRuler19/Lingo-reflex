@@ -29,6 +29,20 @@ function toDateKey(timestampMs: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+/**
+ * Day of week (0 = Sunday) for a "YYYY-MM-DD" key, in local time.
+ *
+ * `new Date("YYYY-MM-DD")` parses date-only strings as UTC midnight per the
+ * ECMAScript spec — unlike date-*time* strings without a zone, which parse
+ * as local. Anyone in a timezone behind UTC gets the *previous* local day,
+ * so `.getDay()` on that value is off by one there. Parsing the components
+ * and using the local-time Date constructor avoids the ambiguity entirely.
+ */
+export function getWeekdayOfDateKey(dateKey: string): number {
+  const [year, month, day] = dateKey.split('-').map(Number)
+  return new Date(year, month - 1, day).getDay()
+}
+
 /** One entry per day for the trailing `days` window, oldest first, gaps filled with count 0. */
 export function buildActivityHeatmapData(sessions: GameSession[], days = 91): DailyActivity[] {
   const counts = new Map<string, number>()

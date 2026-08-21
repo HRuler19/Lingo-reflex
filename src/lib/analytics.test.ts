@@ -1,9 +1,12 @@
+/// <reference types="node" />
+import process from 'node:process'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildActivityHeatmapData,
   buildMasteryData,
   buildTrendData,
   filterSessionsByPeriod,
+  getWeekdayOfDateKey,
 } from './analytics'
 import type { GameSession, Phrase, Word } from '@/db/schema'
 
@@ -128,5 +131,29 @@ describe('filterSessionsByPeriod', () => {
   it('includes a session exactly at the window boundary', () => {
     const atBoundary = session({ timestamp: now() - DAY_MS })
     expect(filterSessionsByPeriod([atBoundary], 'Day')).toHaveLength(1)
+  })
+})
+
+describe('getWeekdayOfDateKey', () => {
+  const originalTz = process.env.TZ
+
+  afterEach(() => {
+    process.env.TZ = originalTz
+  })
+
+  it('is stable across timezones on both sides of UTC (regression: date-only strings parse as UTC)', () => {
+    // 2026-01-10 is a Saturday. `new Date("2026-01-10").getDay()` gives the
+    // wrong answer west of UTC because the bare string parses as UTC
+    // midnight, which is still Friday evening in e.g. America/New_York.
+    for (const tz of ['UTC', 'America/New_York', 'Pacific/Kiritimati', 'Asia/Tokyo']) {
+      process.env.TZ = tz
+      expect(getWeekdayOfDateKey('2026-01-10')).toBe(6) // Saturday
+    }
+  })
+
+  it('matches a known Sunday and a known Monday', () => {
+    process.env.TZ = 'UTC'
+    expect(getWeekdayOfDateKey('2026-01-11')).toBe(0) // Sunday
+    expect(getWeekdayOfDateKey('2026-01-12')).toBe(1) // Monday
   })
 })
