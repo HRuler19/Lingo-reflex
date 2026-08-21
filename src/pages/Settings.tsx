@@ -1,14 +1,25 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { AlertTriangle, CheckCircle2, Trash2, Download, Upload, DatabaseZap } from 'lucide-react'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Trash2,
+  Download,
+  Upload,
+  DatabaseZap,
+  Languages,
+  SettingsIcon,
+} from 'lucide-react'
 import { db, newId } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { downloadTextFile, exportCsv, exportJson, importCsv, importJson } from '@/lib/backup'
+import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type StatusMessage = { kind: 'success' | 'error'; text: string }
 
@@ -18,6 +29,7 @@ export function Settings() {
   const [sourceLang, setSourceLang] = useState('')
   const [targetLang, setTargetLang] = useState('')
   const [status, setStatus] = useState<StatusMessage | null>(null)
+  const [resetDialogOpen, setResetDialogOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleAddPair(e: React.FormEvent) {
@@ -77,8 +89,7 @@ export function Settings() {
     }
   }
 
-  async function handleReset() {
-    if (!confirm('This will permanently delete all local data. Continue?')) return
+  async function handleConfirmReset() {
     await db.transaction('rw', db.languagePairs, db.words, db.phrases, db.sessions, async () => {
       await db.languagePairs.clear()
       await db.words.clear()
@@ -87,15 +98,18 @@ export function Settings() {
     })
     selectPair(null)
     setStatus(null)
+    setResetDialogOpen(false)
   }
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
-      <h1 className="text-xl font-semibold tracking-tight">⚙️ Settings</h1>
+      <PageHeader icon={SettingsIcon} title="Settings" description="Manage your language pairs and data." />
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Language Pairs</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+            <Languages className="size-4 text-muted-foreground" /> Language Pairs
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <form className="flex items-end gap-2" onSubmit={handleAddPair}>
@@ -127,10 +141,11 @@ export function Settings() {
               pairs.map((pair) => (
                 <div
                   key={pair.id}
-                  className="flex items-center justify-between rounded-md border p-3 text-sm"
+                  className="group flex items-center justify-between rounded-lg border border-border bg-card p-3 text-sm transition-colors hover:border-ring/30 hover:bg-accent/40"
                 >
-                  <span>
-                    {pair.sourceLanguage} → {pair.targetLanguage}
+                  <span className="font-medium">
+                    {pair.sourceLanguage} <span className="text-muted-foreground">→</span>{' '}
+                    {pair.targetLanguage}
                   </span>
                   <Button
                     variant="ghost"
@@ -143,7 +158,9 @@ export function Settings() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No language pairs yet.</p>
+              <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                No language pairs yet.
+              </p>
             )}
           </div>
         </CardContent>
@@ -151,7 +168,7 @@ export function Settings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Data Portability</CardTitle>
+          <CardTitle className="text-sm font-semibold">Data Portability</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-2">
@@ -180,7 +197,7 @@ export function Settings() {
 
           {status && (
             <div
-              className={`flex items-start gap-2 rounded-md border p-3 text-sm ${
+              className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
                 status.kind === 'success'
                   ? 'border-success/30 bg-success/10'
                   : 'border-destructive/30 bg-destructive/10'
@@ -203,11 +220,38 @@ export function Settings() {
 
           <Separator className="my-1" />
 
-          <Button variant="destructive" className="justify-start gap-2" onClick={handleReset}>
+          <Button
+            variant="destructive"
+            className="justify-start gap-2"
+            onClick={() => setResetDialogOpen(true)}
+          >
             <DatabaseZap className="size-4" /> Clear / Reset Database
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-destructive" /> Clear all local data?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This permanently deletes every language pair, word, phrase, and practice session
+            stored in this browser. This can't be undone — export a backup first if you're not
+            sure.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmReset}>
+              Delete Everything
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

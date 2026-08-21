@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Info, PlusCircle } from 'lucide-react'
 import { db, newId, type Word } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 
 export function AddWord() {
   const { selectedPairId } = useLanguagePairStore()
@@ -43,20 +44,18 @@ export function AddWord() {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
-      <h1 className="text-xl font-semibold tracking-tight">➕ Add Word</h1>
+      <PageHeader icon={PlusCircle} title="Add Word" description="Build your vocabulary, one word at a time." />
 
       {!selectedPairId && (
-        <p className="text-sm text-muted-foreground">
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" />
           Select a language pair in the header before adding words.
-        </p>
+        </div>
       )}
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">New Word</CardTitle>
-        </CardHeader>
         <CardContent>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
               <Label htmlFor="term">Word</Label>
               <Input
@@ -69,7 +68,7 @@ export function AddWord() {
             </div>
 
             {existing && (
-              <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+              <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-500" />
                 <div className="flex flex-col gap-1.5">
                   <span>This word already exists. New translation will be appended.</span>
@@ -95,7 +94,11 @@ export function AddWord() {
               />
             </div>
 
-            <Button type="submit" disabled={!selectedPairId || !term.trim() || !translation.trim()}>
+            <Button
+              type="submit"
+              size="lg"
+              disabled={!selectedPairId || !term.trim() || !translation.trim()}
+            >
               Save Word
             </Button>
           </form>

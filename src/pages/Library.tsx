@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Info, Library as LibraryIcon, Pencil, Search, Trash2 } from 'lucide-react'
 import { db, type Phrase, type Word } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { EditItemDialog } from '@/components/library/EditItemDialog'
+import { PageHeader } from '@/components/PageHeader'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -33,20 +34,28 @@ export function Library() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold tracking-tight">📚 Library</h1>
+      <PageHeader
+        icon={LibraryIcon}
+        title="Library"
+        description="Every word and phrase you've saved, searchable in one place."
+      />
 
       {!selectedPairId ? (
-        <p className="text-sm text-muted-foreground">
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" />
           Select a language pair in the header to view its library.
-        </p>
+        </div>
       ) : (
         <>
-          <Input
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
-          />
+          <div className="relative max-w-sm">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search words and phrases…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
 
           <Tabs defaultValue="words">
             <TabsList>
@@ -59,9 +68,9 @@ export function Library() {
                 filteredWords.map((w) => (
                   <div
                     key={w.id}
-                    className="flex items-center justify-between rounded-md border p-3"
+                    className="group flex items-center justify-between rounded-lg border border-border bg-card p-3.5 transition-colors hover:border-ring/30 hover:bg-accent/40"
                   >
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1.5">
                       <span className="font-medium">{w.term}</span>
                       <div className="flex flex-wrap gap-1">
                         {w.translations.map((t) => (
@@ -71,7 +80,7 @@ export function Library() {
                         ))}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -92,7 +101,7 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="p-4 text-center text-sm text-muted-foreground">
+                <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                   {search && words?.length ? 'No words match your search.' : 'No words yet.'}
                 </p>
               )}
@@ -103,9 +112,9 @@ export function Library() {
                 filteredPhrases.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between rounded-md border p-3"
+                    className="group flex items-center justify-between rounded-lg border border-border bg-card p-3.5 transition-colors hover:border-ring/30 hover:bg-accent/40"
                   >
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1.5">
                       <span className="font-medium">{p.phrase}</span>
                       <div className="flex flex-wrap gap-1">
                         {p.translations.map((t) => (
@@ -115,7 +124,7 @@ export function Library() {
                         ))}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -136,7 +145,7 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="p-4 text-center text-sm text-muted-foreground">
+                <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                   {search && phrases?.length ? 'No phrases match your search.' : 'No phrases yet.'}
                 </p>
               )}
