@@ -22,7 +22,7 @@ export function PageHeader({ icon: Icon, title, description, action }: PageHeade
           <Icon className="size-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-balance">{title}</h1>
+          <h1 className="text-xl font-extrabold tracking-tight text-balance">{title}</h1>
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
       </div>
