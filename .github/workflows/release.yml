@@ -1,0 +1,71 @@
+name: Release
+
+# Publishes desktop installers whenever a version tag is pushed:
+#
+#   npm version minor      # bumps package.json and creates the tag
+#   git push --follow-tags
+#
+# Can also be run by hand from the Actions tab, which builds the installers
+# and attaches them to a draft release without needing a tag.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Don't let one platform's failure throw away the others' artifacts.
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            label: macOS
+          - os: windows-latest
+            label: Windows
+          - os: ubuntu-latest
+            label: Linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Gate the release on the same checks CI runs, so a broken build can
+      # never be published as a downloadable artifact.
+      - run: npm run lint
+      - run: npm run test
+
+      # The web bundle Electron wraps. Uses the electron-specific build
+      # (relative asset paths, no service worker) — see vite.config.ts.
+      - run: npm run build:electron
+
+      - name: Build installers
+        # electron-builder publishes to the GitHub release itself when it sees
+        # a tag; GH_TOKEN is what authorises that upload.
+        run: npx electron-builder --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lexipulse-${{ matrix.label }}
+          # Only the distributables — not the unpacked app directories, which
+          # are large and redundant once the installer exists.
+          path: |
+            release/*.dmg
+            release/*.zip
+            release/*.exe
+            release/*.AppImage
+          if-no-files-found: error

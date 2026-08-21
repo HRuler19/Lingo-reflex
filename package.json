@@ -1,7 +1,7 @@
 {
   "name": "lexipulse",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Local-first vocabulary and phrase trainer with time-pressured typing practice.",
   "author": "Hangeldi Cholukov",
   "type": "module",
@@ -75,12 +75,31 @@
       "package.json",
       "!node_modules/**/*"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "HRuler19",
+        "repo": "Lingo-reflex"
+      }
+    ],
     "mac": {
       "icon": "build/icon.icns",
       "category": "public.app-category.education",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ]
     },
     "win": {
