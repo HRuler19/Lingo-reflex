@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { PreGameConfig } from '@/components/practice/PreGameConfig'
 import { GameScreen } from '@/components/practice/GameScreen'
 import { ResultView } from '@/components/practice/ResultView'
+import { Mascot } from '@/components/Mascot'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type Phase = 'config' | 'playing' | 'results'
@@ -140,9 +141,12 @@ export function PracticeArena() {
       />
 
       {!selectedPairId && (
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" />
-          Select a language pair in the header before starting a session.
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <Mascot pose="runDash" className="h-10 w-auto shrink-0" />
+          <span className="flex items-start gap-2">
+            <Info className="mt-0.5 size-4 shrink-0" />
+            Select a language pair in the header before starting a session.
+          </span>
         </div>
       )}
 
@@ -150,7 +154,8 @@ export function PracticeArena() {
         <PreGameConfig disabled={!selectedPairId} error={error} onStart={handleStart} />
 
         <Card className="h-fit">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+            <Mascot pose="fistPump" className="h-12 w-auto shrink-0" />
             <CardTitle className="text-sm font-semibold">Ready to Practice</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">

@@ -21,7 +21,7 @@ export function TrendLineChart({
   emptyLabel,
 }: TrendLineChartProps) {
   if (data.length === 0) {
-    return <ChartEmptyState label={emptyLabel} />
+    return <ChartEmptyState label={emptyLabel} pose={dataKey === 'accuracy' ? 'explain' : 'talkTip'} />
   }
 
   return (

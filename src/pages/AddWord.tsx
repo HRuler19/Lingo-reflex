@@ -5,6 +5,7 @@ import { db, newId, type Word } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { PageHeader } from '@/components/PageHeader'
 import { RecentlyAddedPanel } from '@/components/RecentlyAddedPanel'
+import { Mascot } from '@/components/Mascot'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,9 +61,12 @@ export function AddWord() {
       <PageHeader icon={PlusCircle} title="Add Word" description="Build your vocabulary, one word at a time." />
 
       {!selectedPairId && (
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" />
-          Select a language pair in the header before adding words.
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <Mascot pose="pointUpEager" className="h-10 w-auto shrink-0" />
+          <span className="flex items-start gap-2">
+            <Info className="mt-0.5 size-4 shrink-0" />
+            Select a language pair in the header before adding words.
+          </span>
         </div>
       )}
 
@@ -123,6 +127,7 @@ export function AddWord() {
           title="Recently Added Words"
           items={recentWords?.map((w) => ({ id: w.id, text: w.term, translations: w.translations }))}
           emptyLabel="Words you add will show up here."
+          emptyPose="pointSideConfident"
         />
       </div>
     </div>

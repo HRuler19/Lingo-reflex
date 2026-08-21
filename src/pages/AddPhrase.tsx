@@ -5,6 +5,7 @@ import { db, newId, type Phrase } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { PageHeader } from '@/components/PageHeader'
 import { RecentlyAddedPanel } from '@/components/RecentlyAddedPanel'
+import { Mascot } from '@/components/Mascot'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -64,9 +65,12 @@ export function AddPhrase() {
       />
 
       {!selectedPairId && (
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" />
-          Select a language pair in the header before adding phrases.
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <Mascot pose="jumpCheer" className="h-10 w-auto shrink-0" />
+          <span className="flex items-start gap-2">
+            <Info className="mt-0.5 size-4 shrink-0" />
+            Select a language pair in the header before adding phrases.
+          </span>
         </div>
       )}
 
@@ -127,6 +131,7 @@ export function AddPhrase() {
           title="Recently Added Phrases"
           items={recentPhrases?.map((p) => ({ id: p.id, text: p.phrase, translations: p.translations }))}
           emptyLabel="Phrases you add will show up here."
+          emptyPose="reachAttention"
         />
       </div>
     </div>

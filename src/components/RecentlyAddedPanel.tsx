@@ -1,5 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Mascot } from '@/components/Mascot'
+import type { MascotPose } from '@/assets/mascot'
 
 export interface RecentItem {
   id: string
@@ -11,6 +13,7 @@ interface RecentlyAddedPanelProps {
   title: string
   items: RecentItem[] | undefined
   emptyLabel: string
+  emptyPose: MascotPose
 }
 
 /**
@@ -18,7 +21,7 @@ interface RecentlyAddedPanelProps {
  * actually useful — a live look at what you just saved, so the page doesn't
  * end up as a form floating in an otherwise empty page.
  */
-export function RecentlyAddedPanel({ title, items, emptyLabel }: RecentlyAddedPanelProps) {
+export function RecentlyAddedPanel({ title, items, emptyLabel, emptyPose }: RecentlyAddedPanelProps) {
   return (
     <Card className="h-fit">
       <CardHeader>
@@ -42,9 +45,10 @@ export function RecentlyAddedPanel({ title, items, emptyLabel }: RecentlyAddedPa
             </div>
           ))
         ) : (
-          <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            <Mascot pose={emptyPose} className="h-14 w-auto opacity-90" />
             {emptyLabel}
-          </p>
+          </div>
         )}
       </CardContent>
     </Card>

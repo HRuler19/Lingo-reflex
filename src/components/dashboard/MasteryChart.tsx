@@ -10,7 +10,7 @@ interface MasteryChartProps {
 export function MasteryChart({ data }: MasteryChartProps) {
   const isEmpty = data.every((d) => d.correct === 0 && d.wrong === 0)
   if (isEmpty) {
-    return <ChartEmptyState label="No practice attempts yet" height={200} />
+    return <ChartEmptyState label="No practice attempts yet" height={200} pose="reachUp" />
   }
 
   return (

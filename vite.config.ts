@@ -31,7 +31,7 @@ export default defineConfig({
         // Everything the app needs is bundled at build time (Dexie/IndexedDB
         // is local, there's no API), so precaching the build output is
         // enough for the app shell to load with no network at all.
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
       },
     }),
   ],

@@ -2,11 +2,17 @@ import { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { Mascot } from '@/components/Mascot'
 import { AppSidebar } from './AppSidebar'
 import { Header } from './Header'
 
 function RouteFallback() {
-  return <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+  return (
+    <div className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
+      <Mascot pose="hipLookUp" className="h-10 w-auto" />
+      Loading…
+    </div>
+  )
 }
 
 export function AppLayout() {

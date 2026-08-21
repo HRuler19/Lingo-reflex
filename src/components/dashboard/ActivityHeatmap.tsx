@@ -38,7 +38,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
 
   const hasActivity = data.some((d) => d.count > 0)
   if (!hasActivity) {
-    return <ChartEmptyState label="No activity in the last 13 weeks" />
+    return <ChartEmptyState label="No activity in the last 13 weeks" pose="chinThink" />
   }
 
   return (

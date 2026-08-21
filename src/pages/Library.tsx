@@ -5,6 +5,7 @@ import { db, type Phrase, type Word } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { EditItemDialog } from '@/components/library/EditItemDialog'
 import { PageHeader } from '@/components/PageHeader'
+import { Mascot } from '@/components/Mascot'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -41,9 +42,12 @@ export function Library() {
       />
 
       {!selectedPairId ? (
-        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-          <Info className="mt-0.5 size-4 shrink-0" />
-          Select a language pair in the header to view its library.
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <Mascot pose="leanWalk" className="h-10 w-auto shrink-0" />
+          <span className="flex items-start gap-2">
+            <Info className="mt-0.5 size-4 shrink-0" />
+            Select a language pair in the header to view its library.
+          </span>
         </div>
       ) : (
         <>
@@ -101,9 +105,10 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="col-span-full rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                <div className="col-span-full flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                  <Mascot pose="stride" className="h-14 w-auto opacity-90" />
                   {search && words?.length ? 'No words match your search.' : 'No words yet.'}
-                </p>
+                </div>
               )}
             </TabsContent>
 
@@ -145,9 +150,10 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="col-span-full rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                <div className="col-span-full flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                  <Mascot pose="stride" className="h-14 w-auto opacity-90" />
                   {search && phrases?.length ? 'No phrases match your search.' : 'No phrases yet.'}
-                </p>
+                </div>
               )}
             </TabsContent>
           </Tabs>

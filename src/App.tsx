@@ -15,6 +15,7 @@ const PracticeArena = lazy(() =>
 )
 const Library = lazy(() => import('@/pages/Library').then((m) => ({ default: m.Library })))
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })))
+const NotFound = lazy(() => import('@/pages/NotFound').then((m) => ({ default: m.NotFound })))
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="practice" element={<PracticeArena />} />
           <Route path="library" element={<Library />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </BrowserRouter>

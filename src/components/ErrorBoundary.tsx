@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Mascot } from '@/components/Mascot'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-16 text-center">
-        <AlertTriangle className="size-8 text-destructive" />
+        <Mascot pose="faceplant" className="h-24 w-auto" />
         <h2 className="text-lg font-semibold">
           {this.props.scope ? `${this.props.scope} hit a problem` : 'Something went wrong'}
         </h2>
