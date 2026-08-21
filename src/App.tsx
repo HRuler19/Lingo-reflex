@@ -1,9 +1,12 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 
 // Route-level code splitting: Recharts (Dashboard) and the Practice Arena
 // game engine are the heaviest pages, so keep them out of the initial bundle.
+// The loading fallback for these lives inside AppLayout, wrapping only the
+// routed content — not here — so a not-yet-fetched chunk doesn't blank out
+// the sidebar/header along with the page.
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })))
 const AddWord = lazy(() => import('@/pages/AddWord').then((m) => ({ default: m.AddWord })))
 const AddPhrase = lazy(() => import('@/pages/AddPhrase').then((m) => ({ default: m.AddPhrase })))
@@ -13,25 +16,19 @@ const PracticeArena = lazy(() =>
 const Library = lazy(() => import('@/pages/Library').then((m) => ({ default: m.Library })))
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })))
 
-function RouteFallback() {
-  return <div className="p-6 text-sm text-muted-foreground">Loading…</div>
-}
-
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<RouteFallback />}>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="add-word" element={<AddWord />} />
-            <Route path="add-phrase" element={<AddPhrase />} />
-            <Route path="practice" element={<PracticeArena />} />
-            <Route path="library" element={<Library />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="add-word" element={<AddWord />} />
+          <Route path="add-phrase" element={<AddPhrase />} />
+          <Route path="practice" element={<PracticeArena />} />
+          <Route path="library" element={<Library />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   )
 }

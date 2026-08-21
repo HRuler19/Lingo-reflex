@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { CheckCircle2, XCircle, Timer, Target } from 'lucide-react'
 import type { SessionResult } from '@/hooks/use-practice-session'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface ResultViewProps {
   result: SessionResult
@@ -57,14 +58,15 @@ export function ResultView({ result, onRestart }: ResultViewProps) {
           </p>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              nativeButton={false}
-              render={<Link to="/" />}
-            >
+            {/*
+              A real <Link>, not <Button render={<Link/>}>: Base UI's Button
+              sets an explicit role="button" whenever nativeButton is false
+              (see useButton.js), which would hide this from screen readers'
+              "list of links" navigation despite it being real navigation.
+            */}
+            <Link to="/" className={cn(buttonVariants({ variant: 'outline' }), 'flex-1')}>
               Back to Dashboard
-            </Button>
+            </Link>
             <Button className="flex-1" onClick={onRestart}>
               Play Again
             </Button>

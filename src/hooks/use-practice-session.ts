@@ -45,6 +45,7 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
   // This counter always changes, one nextItem() call at a time.
   const [itemSeq, setItemSeq] = useState(0)
   const [sessionSecondsLeft, setSessionSecondsLeft] = useState(config.totalDurationSec)
+  const sessionSecondsLeftRef = useRef(config.totalDurationSec)
   const [itemSecondsLeft, setItemSecondsLeft] = useState(config.timePerItemSec)
   const [correctCount, setCorrectCount] = useState(0)
   const [wrongCount, setWrongCount] = useState(0)
@@ -129,8 +130,11 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
   )
 
   const endEarly = useCallback(() => {
-    const elapsedSec = Math.round((Date.now() - startTimeRef.current) / 1000)
-    finish(Math.min(elapsedSec, config.totalDurationSec))
+    // Derive usedDurationSec from the countdown's own last value rather than
+    // recomputing elapsed time with different rounding — otherwise the saved
+    // duration can be off by up to a second from what the countdown ever
+    // actually displayed (floor'd ticks vs. a round()'d snapshot at Esc time).
+    finish(config.totalDurationSec - sessionSecondsLeftRef.current)
   }, [finish, config.totalDurationSec])
 
   // Session lifecycle: runs once for the lifetime of this hook instance.
@@ -149,6 +153,7 @@ export function usePracticeSession({ pool, config, onFinish }: UsePracticeSessio
         0,
         config.totalDurationSec - Math.floor(elapsedMs / 1000),
       )
+      sessionSecondsLeftRef.current = sessionRemaining
       setSessionSecondsLeft(sessionRemaining)
 
       if (sessionRemaining <= 0) {

@@ -108,4 +108,31 @@ describe('usePracticeSession', () => {
       wrongCount: 0,
     })
   })
+
+  it('endEarly records exactly the duration the countdown last displayed', () => {
+    const onFinish = vi.fn()
+    const { result } = renderHook(() =>
+      usePracticeSession({
+        pool: [onlyItem],
+        config: {
+          mode: 'WORDS_ONLY',
+          direction: 'SOURCE_TO_TARGET',
+          totalDurationSec: 300,
+          timePerItemSec: 10,
+        },
+        onFinish,
+      }),
+    )
+    act(() => vi.advanceTimersByTime(0))
+
+    // 3 ticks fire by 3500ms; sessionSecondsLeft was last set to 300-3=297
+    // and stays there until the next tick, which endEarly (called mid-tick,
+    // like Esc/the ✕ button would be) must not race ahead of.
+    act(() => vi.advanceTimersByTime(3500))
+    expect(result.current.sessionSecondsLeft).toBe(297)
+
+    act(() => result.current.endEarly())
+
+    expect(onFinish.mock.calls[0][0]).toMatchObject({ usedDurationSec: 3 })
+  })
 })
