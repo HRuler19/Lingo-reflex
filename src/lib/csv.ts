@@ -1,10 +1,20 @@
 /** Minimal RFC 4180-ish CSV encode/decode — no external dependency needed for this. */
 
+// Cell values are free-text words/phrases/translations — including ones a
+// user imported from someone else's file. Spreadsheet apps treat a cell
+// starting with any of these as a formula, so a shared "vocab list" could
+// smuggle in something like `=HYPERLINK(...)` that runs when the *victim*
+// later re-exports their own library and opens it in Excel/Sheets. Prefixing
+// with a single quote is the standard CSV/formula-injection mitigation
+// (OWASP) — spreadsheet apps display it but don't evaluate the cell.
+const FORMULA_PREFIX = /^[=+\-@\t\r]/
+
 function toCsvField(value: string): string {
-  if (/[",\r\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`
+  const safe = FORMULA_PREFIX.test(value) ? `'${value}` : value
+  if (/[",\r\n]/.test(safe)) {
+    return `"${safe.replace(/"/g, '""')}"`
   }
-  return value
+  return safe
 }
 
 export function toCsv(rows: string[][]): string {

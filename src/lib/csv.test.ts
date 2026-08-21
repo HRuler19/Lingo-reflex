@@ -10,6 +10,24 @@ describe('toCsv', () => {
     const csv = toCsv([['plain', 'has,comma', 'has"quote', 'has\nnewline']])
     expect(csv).toBe('plain,"has,comma","has""quote","has\nnewline"')
   })
+
+  it('neutralizes cells that would be read as a formula in a spreadsheet (CSV injection)', () => {
+    // A field starting with = + - @ (or a leading tab/CR) is interpreted as
+    // a formula by Excel/Sheets/LibreOffice when the exported CSV is opened.
+    // A leading `'` is the standard mitigation: spreadsheet apps show it as
+    // literal text instead of evaluating it. Check the round-tripped field
+    // value rather than the raw line, since a value like `=HYPERLINK("evil")`
+    // also triggers ordinary RFC 4180 quoting around the whole cell.
+    for (const dangerous of ['=SUM(A1)', '+1+1', '-1+1', '@SUM(1)', '=HYPERLINK("evil")']) {
+      const [[decoded]] = parseCsv(toCsv([[dangerous]]))
+      expect(decoded.startsWith("'")).toBe(true)
+      expect(decoded).toBe(`'${dangerous}`)
+    }
+  })
+
+  it('does not touch a field that merely contains one of those characters mid-string', () => {
+    expect(toCsv([['price = 5']])).toBe('price = 5')
+  })
 })
 
 describe('parseCsv', () => {
