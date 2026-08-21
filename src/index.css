@@ -52,25 +52,27 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --background: oklch(0.995 0.002 300);
+    --foreground: oklch(0.19 0.02 295);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.19 0.02 295);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.19 0.02 295);
+    /* Brand: violet-600, echoed by the favicon/app icon and chart accent —
+       this is the one color that should read as "LexiPulse" everywhere. */
+    --primary: #7c3aed;
+    --primary-foreground: #ffffff;
+    --secondary: oklch(0.965 0.006 296);
+    --secondary-foreground: oklch(0.19 0.02 295);
+    --muted: oklch(0.965 0.006 296);
+    --muted-foreground: oklch(0.5 0.02 295);
+    --accent: #f5f3ff;
+    --accent-foreground: #6d28d9;
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
+    --border: oklch(0.914 0.008 296);
+    --input: oklch(0.894 0.01 296);
+    --ring: #7c3aed;
+    --chart-1: #7c3aed;
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
@@ -81,52 +83,54 @@
        for deuteranopia/protanopia — see references/color-formula.md. */
     --success: #16a34a;
     --info: #2563eb;
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --radius: 0.75rem;
+    --sidebar: oklch(0.985 0.003 296);
+    --sidebar-foreground: oklch(0.19 0.02 295);
+    --sidebar-primary: #7c3aed;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f5f3ff;
+    --sidebar-accent-foreground: #6d28d9;
+    --sidebar-border: oklch(0.914 0.008 296);
+    --sidebar-ring: #7c3aed;
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --background: oklch(0.16 0.014 295);
+    --foreground: oklch(0.96 0.006 296);
+    --card: oklch(0.205 0.016 295);
+    --card-foreground: oklch(0.96 0.006 296);
+    --popover: oklch(0.205 0.016 295);
+    --popover-foreground: oklch(0.96 0.006 296);
+    /* Lighter violet-400 for contrast against the dark surface, with dark ink
+       on top of it rather than white — mirrors how the light primary works. */
+    --primary: #a78bfa;
+    --primary-foreground: #1c1330;
+    --secondary: oklch(0.26 0.017 295);
+    --secondary-foreground: oklch(0.96 0.006 296);
+    --muted: oklch(0.26 0.017 295);
+    --muted-foreground: oklch(0.66 0.014 295);
+    --accent: oklch(0.26 0.06 295);
+    --accent-foreground: #d8ccfd;
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --ring: #a78bfa;
+    --chart-1: #a78bfa;
+    --chart-2: oklch(0.708 0 0);
+    --chart-3: oklch(0.556 0 0);
+    --chart-4: oklch(0.439 0 0);
+    --chart-5: oklch(0.302 0 0);
     --chart-accent: #a78bfa;
     --success: #16a34a;
     --info: #3b82f6;
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar: oklch(0.185 0.016 295);
+    --sidebar-foreground: oklch(0.96 0.006 296);
+    --sidebar-primary: #a78bfa;
+    --sidebar-primary-foreground: #1c1330;
+    --sidebar-accent: oklch(0.26 0.06 295);
+    --sidebar-accent-foreground: #d8ccfd;
     --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --sidebar-ring: #a78bfa;
 }
 
 @layer base {
