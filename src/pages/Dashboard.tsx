@@ -22,10 +22,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const FILTERS: DashboardFilter[] = ['Day', 'Week', 'Month', 'Year', 'All Time']
 
 const KPI_TINTS = {
-  primary: 'bg-primary text-primary-foreground shadow-[0_2px_0_0_color-mix(in_oklch,var(--primary),black_25%)]',
-  info: 'bg-info text-white shadow-[0_2px_0_0_color-mix(in_oklch,var(--info),black_25%)]',
-  success: 'bg-success text-white shadow-[0_2px_0_0_color-mix(in_oklch,var(--success),black_25%)]',
-  flame: 'bg-amber-500 text-white shadow-[0_2px_0_0_color-mix(in_oklch,#f59e0b,black_25%)]',
+  primary: 'bg-primary text-primary-foreground',
+  info: 'bg-info text-white',
+  success: 'bg-success text-white',
+  flame: 'bg-amber-500 text-white',
 } as const
 
 function KpiCard({

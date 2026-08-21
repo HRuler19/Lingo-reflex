@@ -18,7 +18,7 @@ export function PageHeader({ icon: Icon, title, description, action }: PageHeade
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-3">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-[0_3px_0_0_color-mix(in_oklch,var(--primary),black_25%)] dark:shadow-[0_3px_0_0_color-mix(in_oklch,var(--primary),black_35%)]">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
           <Icon className="size-5" />
         </div>
         <div>
