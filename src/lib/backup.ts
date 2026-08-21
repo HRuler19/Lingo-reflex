@@ -30,6 +30,33 @@ export async function importJson(text: string): Promise<void> {
   })
 }
 
+// A cell can only hold one string, so a word/phrase's translation list is
+// packed into it delimited by "; ". A translation that itself contains a
+// literal semicolon (plausible for a phrase, e.g. "wait; then go") would
+// otherwise silently split into extra translations on export → reimport, so
+// escape/unescape the delimiter rather than just joining/splitting on it raw.
+export function encodeTranslations(translations: string[]): string {
+  return translations.map((t) => t.replace(/\\/g, '\\\\').replace(/;/g, '\\;')).join('; ')
+}
+
+export function decodeTranslations(field: string): string[] {
+  const parts: string[] = []
+  let current = ''
+  for (let i = 0; i < field.length; i++) {
+    if (field[i] === '\\' && i + 1 < field.length) {
+      current += field[i + 1]
+      i += 1
+    } else if (field[i] === ';') {
+      parts.push(current)
+      current = ''
+    } else {
+      current += field[i]
+    }
+  }
+  parts.push(current)
+  return parts.map((t) => t.trim()).filter(Boolean)
+}
+
 const CSV_HEADER = [
   'type',
   'sourceLanguage',
@@ -64,7 +91,7 @@ export async function exportCsv(): Promise<string> {
       pair.sourceLanguage,
       pair.targetLanguage,
       word.term,
-      word.translations.join('; '),
+      encodeTranslations(word.translations),
       String(word.stats.correct),
       String(word.stats.wrong),
       String(word.createdAt),
@@ -79,7 +106,7 @@ export async function exportCsv(): Promise<string> {
       pair.sourceLanguage,
       pair.targetLanguage,
       phrase.phrase,
-      phrase.translations.join('; '),
+      encodeTranslations(phrase.translations),
       String(phrase.stats.correct),
       String(phrase.stats.wrong),
       String(phrase.createdAt),
@@ -129,10 +156,7 @@ export async function importCsv(text: string): Promise<void> {
         continue
       }
 
-      const translations = (row[translationsIdx] ?? '')
-        .split(';')
-        .map((t) => t.trim())
-        .filter(Boolean)
+      const translations = decodeTranslations(row[translationsIdx] ?? '')
       if (translations.length === 0) continue
 
       const correct = Number(row[correctIdx]) || 0
