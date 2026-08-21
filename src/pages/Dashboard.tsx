@@ -110,6 +110,7 @@ export function Dashboard() {
   const heatmapData = buildActivityHeatmapData(sessions ?? [])
   const trendData = buildTrendData(filteredSessions)
   const masteryData = buildMasteryData(words ?? [], phrases ?? [])
+  const latestTrend = trendData.at(-1)
 
   return (
     <div className="flex flex-col gap-6">
@@ -159,9 +160,16 @@ export function Dashboard() {
           <CardHeader>
             <CardTitle className="text-sm font-semibold">Accuracy & Speed Trends</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+          <CardContent className="flex flex-col">
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">Accuracy</p>
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">Accuracy</p>
+                {latestTrend && (
+                  <span className="rounded-md border-2 border-success px-1.5 py-0.5 text-xs font-medium text-success">
+                    {latestTrend.accuracy}% latest
+                  </span>
+                )}
+              </div>
               <TrendLineChart
                 data={trendData}
                 dataKey="accuracy"
@@ -169,10 +177,19 @@ export function Dashboard() {
                 formatValue={(v) => `${v}%`}
                 yDomain={[0, 100]}
                 emptyLabel={filter === 'All Time' ? 'No sessions yet' : `No sessions in the last ${filter.toLowerCase()}`}
+                hideXAxisLabels
               />
             </div>
+            <div className="my-3 border-t border-border" />
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">Avg. Response Time</p>
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">Avg. Response Time</p>
+                {latestTrend && (
+                  <span className="rounded-md border-2 border-info px-1.5 py-0.5 text-xs font-medium text-info">
+                    {(latestTrend.avgResponseMs / 1000).toFixed(1)}s latest
+                  </span>
+                )}
+              </div>
               <TrendLineChart
                 data={trendData}
                 dataKey="avgResponseMs"
