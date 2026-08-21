@@ -15,10 +15,10 @@ export function MasteryChart({ data }: MasteryChartProps) {
 
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }} barGap={4}>
+      <BarChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }} barGap={4}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis dataKey="category" tick={axisTick} tickLine={false} axisLine={false} />
-        <YAxis allowDecimals={false} tick={axisTick} tickLine={false} axisLine={false} width={32} />
+        <YAxis allowDecimals={false} tick={axisTick} tickLine={false} axisLine={false} width={36} />
         <Tooltip contentStyle={tooltipContentStyle} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Bar dataKey="correct" name="Correct" fill="var(--success)" radius={[4, 4, 0, 0]} />

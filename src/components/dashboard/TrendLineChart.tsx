@@ -26,10 +26,10 @@ export function TrendLineChart({
 
   return (
     <ResponsiveContainer width="100%" height={160}>
-      <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
         <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
-        <YAxis domain={yDomain} tick={axisTick} tickLine={false} axisLine={false} width={36} />
+        <YAxis domain={yDomain} tick={axisTick} tickLine={false} axisLine={false} width={40} />
         <Tooltip
           contentStyle={tooltipContentStyle}
           formatter={(value) => [formatValue(Number(value)), valueLabel]}

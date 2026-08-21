@@ -136,16 +136,23 @@ export function Dashboard() {
         <KpiCard icon={Flame} label="Day Streak" value={dayStreak} tint="flame" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold">Activity Heatmap</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ActivityHeatmap data={heatmapData} />
-          </CardContent>
-        </Card>
+      {/*
+        The heatmap gets its own full-width row rather than sharing a
+        lg:grid-cols-2 row with the (taller) trends card: a 13-week
+        calendar grid is inherently wide and short, and CSS grid stretches
+        row siblings to match height by default — squeezed into a half
+        column, it looked like a tiny grid floating in a mostly-empty card.
+      */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold">Activity Heatmap</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ActivityHeatmap data={heatmapData} />
+        </CardContent>
+      </Card>
 
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-semibold">Accuracy & Speed Trends</CardTitle>
@@ -175,7 +182,7 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle className="text-sm font-semibold">Words vs. Phrases Mastery</CardTitle>
           </CardHeader>
