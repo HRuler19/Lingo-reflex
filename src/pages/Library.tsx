@@ -92,7 +92,9 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="p-4 text-center text-sm text-muted-foreground">No words yet.</p>
+                <p className="p-4 text-center text-sm text-muted-foreground">
+                  {search && words?.length ? 'No words match your search.' : 'No words yet.'}
+                </p>
               )}
             </TabsContent>
 
@@ -134,7 +136,9 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="p-4 text-center text-sm text-muted-foreground">No phrases yet.</p>
+                <p className="p-4 text-center text-sm text-muted-foreground">
+                  {search && phrases?.length ? 'No phrases match your search.' : 'No phrases yet.'}
+                </p>
               )}
             </TabsContent>
           </Tabs>
