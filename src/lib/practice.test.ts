@@ -49,6 +49,17 @@ describe('buildPracticePool', () => {
     expect(item.answers).toEqual(['Relentless'])
     expect(word.translations).toContain(item.prompt)
   })
+
+  it('produces both directions for MIXED across enough items', () => {
+    const words = Array.from({ length: 40 }, (_, i) => ({ ...word, id: `w${i}` }))
+    const pool = buildPracticePool(words, [], 'WORDS_ONLY', 'MIXED')
+    const sourceToTarget = pool.filter((item) => item.prompt === word.term)
+    const targetToSource = pool.filter((item) => item.answers[0] === word.term)
+    // Each item is independently randomized, so with 40 items both
+    // directions should show up — this isn't flaky in practice.
+    expect(sourceToTarget.length).toBeGreaterThan(0)
+    expect(targetToSource.length).toBeGreaterThan(0)
+  })
 })
 
 describe('isCorrectAnswer', () => {

@@ -32,7 +32,7 @@ export interface Phrase {
 }
 
 export type GameMode = 'WORDS_ONLY' | 'PHRASES_ONLY' | 'HYBRID'
-export type GameDirection = 'SOURCE_TO_TARGET' | 'TARGET_TO_SOURCE'
+export type GameDirection = 'SOURCE_TO_TARGET' | 'TARGET_TO_SOURCE' | 'MIXED'
 
 export interface GameSession {
   id: string

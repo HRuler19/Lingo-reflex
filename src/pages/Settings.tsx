@@ -10,17 +10,17 @@ import {
   Languages,
   SettingsIcon,
 } from 'lucide-react'
-import { db, newId } from '@/db/schema'
+import { db, newId, type LanguagePair } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { downloadTextFile, exportCsv, exportJson, importCsv, importJson } from '@/lib/backup'
 import { PageHeader } from '@/components/PageHeader'
 import { Mascot } from '@/components/Mascot'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type StatusMessage = { kind: 'success' | 'error'; text: string }
 
@@ -31,6 +31,7 @@ export function Settings() {
   const [targetLang, setTargetLang] = useState('')
   const [status, setStatus] = useState<StatusMessage | null>(null)
   const [resetDialogOpen, setResetDialogOpen] = useState(false)
+  const [pairToDelete, setPairToDelete] = useState<LanguagePair | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleAddPair(e: React.FormEvent) {
@@ -154,7 +155,7 @@ export function Settings() {
                     variant="ghost"
                     size="icon"
                     aria-label="Delete pair"
-                    onClick={() => handleDeletePair(pair.id)}
+                    onClick={() => setPairToDelete(pair)}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -235,28 +236,22 @@ export function Settings() {
       </Card>
       </div>
 
-      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-5 text-destructive" /> Clear all local data?
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            This permanently deletes every language pair, word, phrase, and practice session
-            stored in this browser. This can't be undone — export a backup first if you're not
-            sure.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setResetDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmReset}>
-              Delete Everything
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        title="Clear all local data?"
+        description="This permanently deletes every language pair, word, phrase, and practice session stored in this browser. This can't be undone — export a backup first if you're not sure."
+        confirmLabel="Delete Everything"
+        onConfirm={handleConfirmReset}
+      />
+
+      <ConfirmDialog
+        open={!!pairToDelete}
+        onOpenChange={(open) => !open && setPairToDelete(null)}
+        title={pairToDelete ? `Delete "${pairToDelete.sourceLanguage} → ${pairToDelete.targetLanguage}"?` : ''}
+        description="This permanently deletes this language pair along with all of its words, phrases, and practice sessions. This can't be undone."
+        onConfirm={() => pairToDelete && handleDeletePair(pairToDelete.id)}
+      />
     </div>
   )
 }

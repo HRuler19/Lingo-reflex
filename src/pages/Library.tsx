@@ -6,16 +6,24 @@ import { useLanguagePairStore } from '@/store/language-pair-store'
 import { EditItemDialog } from '@/components/library/EditItemDialog'
 import { PageHeader } from '@/components/PageHeader'
 import { Mascot } from '@/components/Mascot'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+interface DeleteTarget {
+  kind: 'word' | 'phrase'
+  id: string
+  label: string
+}
 
 export function Library() {
   const { selectedPairId } = useLanguagePairStore()
   const [search, setSearch] = useState('')
   const [editingWord, setEditingWord] = useState<Word | null>(null)
   const [editingPhrase, setEditingPhrase] = useState<Phrase | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
   const words = useLiveQuery(
     () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).toArray() : []),
@@ -97,7 +105,7 @@ export function Library() {
                         variant="ghost"
                         size="icon"
                         aria-label="Delete word"
-                        onClick={() => db.words.delete(w.id)}
+                        onClick={() => setDeleteTarget({ kind: 'word', id: w.id, label: w.term })}
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -142,7 +150,7 @@ export function Library() {
                         variant="ghost"
                         size="icon"
                         aria-label="Delete phrase"
-                        onClick={() => db.phrases.delete(p.id)}
+                        onClick={() => setDeleteTarget({ kind: 'phrase', id: p.id, label: p.phrase })}
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -185,6 +193,18 @@ export function Library() {
           }
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={deleteTarget ? `Delete "${deleteTarget.label}"?` : ''}
+        description={`This permanently removes this ${deleteTarget?.kind ?? 'item'} from your library. This can't be undone.`}
+        onConfirm={() => {
+          if (!deleteTarget) return
+          if (deleteTarget.kind === 'word') db.words.delete(deleteTarget.id)
+          else db.phrases.delete(deleteTarget.id)
+        }}
+      />
     </div>
   )
 }

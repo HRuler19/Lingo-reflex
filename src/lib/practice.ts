@@ -33,6 +33,7 @@ export const GAME_MODE_OPTIONS: { label: string; value: GameMode }[] = [
 export const DIRECTION_OPTIONS: { label: string; value: GameDirection }[] = [
   { label: 'Source → Target', value: 'SOURCE_TO_TARGET' },
   { label: 'Target → Source', value: 'TARGET_TO_SOURCE' },
+  { label: 'Mixed (Both Directions)', value: 'MIXED' },
 ]
 
 /** Fisher-Yates shuffle. Returns a new array, does not mutate the input. */
@@ -52,7 +53,14 @@ function toPracticeItem(
   translations: string[],
   direction: GameDirection,
 ): PracticeItem {
-  if (direction === 'SOURCE_TO_TARGET') {
+  // MIXED: each item independently rolls source->target or target->source,
+  // so a single session interleaves both instead of picking one up front.
+  const effectiveDirection =
+    direction === 'MIXED'
+      ? (Math.random() < 0.5 ? 'SOURCE_TO_TARGET' : 'TARGET_TO_SOURCE')
+      : direction
+
+  if (effectiveDirection === 'SOURCE_TO_TARGET') {
     return { id, kind, prompt: source, answers: translations }
   }
   // TARGET_TO_SOURCE: show a random known translation, expect the source term/phrase back.
