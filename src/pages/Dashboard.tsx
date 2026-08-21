@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Flame, Percent, BookOpen, MessageSquareText, Clock, LayoutDashboard } from 'lucide-react'
 import { db } from '@/db/schema'
@@ -99,17 +99,34 @@ export function Dashboard() {
   // The Day/Week/Month/Year/All Time filter scopes the session-derived KPIs
   // and trend charts. The heatmap always shows its own fixed 13-week window,
   // and the day streak is inherently "as of today", so neither reacts to it.
-  const filteredSessions = filterSessionsByPeriod(sessions ?? [], filter)
+  //
+  // Memoized rather than recomputed inline: useLiveQuery re-renders this
+  // component on every matching IndexedDB write (e.g. mid-session ticks
+  // elsewhere aren't relevant, but any word/phrase/session change is), so an
+  // unmemoized reduce over the full session list would redo that work on
+  // renders that didn't actually change the underlying data.
+  const filteredSessions = useMemo(
+    () => filterSessionsByPeriod(sessions ?? [], filter),
+    [sessions, filter],
+  )
 
-  const totalPracticeSec = filteredSessions.reduce((sum, s) => sum + s.usedDurationSec, 0)
-  const totalCorrect = filteredSessions.reduce((sum, s) => sum + s.correctCount, 0)
-  const totalAttempts = filteredSessions.reduce((sum, s) => sum + s.correctCount + s.wrongCount, 0)
-  const accuracy = totalAttempts ? Math.round((totalCorrect / totalAttempts) * 100) : 0
-  const dayStreak = computeDayStreak(sessions ?? [])
+  const { accuracy, totalPracticeSec } = useMemo(() => {
+    const totalPracticeSec = filteredSessions.reduce((sum, s) => sum + s.usedDurationSec, 0)
+    const totalCorrect = filteredSessions.reduce((sum, s) => sum + s.correctCount, 0)
+    const totalAttempts = filteredSessions.reduce((sum, s) => sum + s.correctCount + s.wrongCount, 0)
+    return {
+      totalPracticeSec,
+      accuracy: totalAttempts ? Math.round((totalCorrect / totalAttempts) * 100) : 0,
+    }
+  }, [filteredSessions])
 
-  const heatmapData = buildActivityHeatmapData(sessions ?? [])
-  const trendData = buildTrendData(filteredSessions)
-  const masteryData = buildMasteryData(words ?? [], phrases ?? [])
+  const dayStreak = useMemo(() => computeDayStreak(sessions ?? []), [sessions])
+  const heatmapData = useMemo(() => buildActivityHeatmapData(sessions ?? []), [sessions])
+  const trendData = useMemo(() => buildTrendData(filteredSessions), [filteredSessions])
+  const masteryData = useMemo(
+    () => buildMasteryData(words ?? [], phrases ?? []),
+    [words, phrases],
+  )
   const latestTrend = trendData.at(-1)
 
   return (
