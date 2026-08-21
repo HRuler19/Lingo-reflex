@@ -25,17 +25,22 @@ async function applyOutcomesToStats(outcomes: ItemOutcome[]) {
   }
 
   await db.transaction('rw', db.words, db.phrases, async () => {
-    for (const [id, delta] of deltas) {
-      const table = delta.kind === 'word' ? db.words : db.phrases
-      const record = await table.get(id)
-      if (!record) continue
-      await table.update(id, {
-        stats: {
-          correct: record.stats.correct + delta.correct,
-          wrong: record.stats.wrong + delta.wrong,
-        },
-      })
-    }
+    // Each delta targets a distinct id, so these get+update round trips are
+    // independent — run them concurrently within the transaction rather
+    // than serializing every item in the session one at a time.
+    await Promise.all(
+      Array.from(deltas, async ([id, delta]) => {
+        const table = delta.kind === 'word' ? db.words : db.phrases
+        const record = await table.get(id)
+        if (!record) return
+        await table.update(id, {
+          stats: {
+            correct: record.stats.correct + delta.correct,
+            wrong: record.stats.wrong + delta.wrong,
+          },
+        })
+      }),
+    )
   })
 }
 

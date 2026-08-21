@@ -24,7 +24,8 @@ export interface DailyActivity {
   count: number
 }
 
-function toDateKey(timestampMs: number): string {
+/** Local-time "YYYY-MM-DD" key for a timestamp — the one place this app defines "a day". */
+export function toDateKey(timestampMs: number): string {
   const d = new Date(timestampMs)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }

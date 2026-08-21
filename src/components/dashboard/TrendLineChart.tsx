@@ -1,6 +1,7 @@
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TrendPoint } from '@/lib/analytics'
 import { ChartEmptyState } from './ChartEmptyState'
+import { axisTick, tooltipContentStyle } from './chart-style'
 
 interface TrendLineChartProps {
   data: TrendPoint[]
@@ -10,16 +11,6 @@ interface TrendLineChartProps {
   yDomain?: [number, number]
   emptyLabel: string
 }
-
-const tooltipContentStyle: React.CSSProperties = {
-  background: 'var(--popover)',
-  color: 'var(--popover-foreground)',
-  border: '1px solid var(--border)',
-  borderRadius: 8,
-  fontSize: 12,
-}
-
-const axisTick = { fontSize: 11, fill: 'var(--muted-foreground)' }
 
 export function TrendLineChart({
   data,

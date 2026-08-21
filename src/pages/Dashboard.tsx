@@ -8,6 +8,7 @@ import {
   buildMasteryData,
   buildTrendData,
   filterSessionsByPeriod,
+  toDateKey,
   type DashboardFilter,
 } from '@/lib/analytics'
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
@@ -43,19 +44,14 @@ function KpiCard({
 /** Consecutive days (ending today or yesterday) with at least one session. */
 function computeDayStreak(sessions: { timestamp: number }[]): number {
   if (sessions.length === 0) return 0
-  const days = new Set(
-    sessions.map((s) => {
-      const d = new Date(s.timestamp)
-      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
-    }),
-  )
+  const days = new Set(sessions.map((s) => toDateKey(s.timestamp)))
   const cursor = new Date()
   let streak = 0
   // Allow the streak to still count if today has no session yet but yesterday does.
-  if (!days.has(`${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`)) {
+  if (!days.has(toDateKey(cursor.getTime()))) {
     cursor.setDate(cursor.getDate() - 1)
   }
-  while (days.has(`${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`)) {
+  while (days.has(toDateKey(cursor.getTime()))) {
     streak += 1
     cursor.setDate(cursor.getDate() - 1)
   }

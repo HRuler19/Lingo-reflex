@@ -24,10 +24,12 @@ export function Header() {
       <SidebarTrigger aria-label="Toggle sidebar" />
       <Separator orientation="vertical" className="h-6" />
 
-      <Select value={selectedPairId ?? ''} onValueChange={selectPair}>
+      {/* Base UI's Select defaults to (and treats as controlled) value={null}
+          for "nothing selected" — no need for a '' sentinel workaround. */}
+      <Select value={selectedPairId} onValueChange={selectPair}>
         <SelectTrigger className="w-48" size="sm">
           <SelectValue placeholder="Select language pair">
-            {(value: string) => {
+            {(value: string | null) => {
               const pair = pairs?.find((p) => p.id === value)
               return pair ? `${pair.sourceLanguage} → ${pair.targetLanguage}` : 'Select language pair'
             }}
