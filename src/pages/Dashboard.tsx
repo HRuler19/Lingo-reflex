@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Flame, Percent, BookOpen, MessageSquareText, Clock } from 'lucide-react'
+import { Flame, Percent, BookOpen, MessageSquareText, Clock, LayoutDashboard } from 'lucide-react'
 import { db } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { cn } from '@/lib/utils'
 import {
   buildActivityHeatmapData,
   buildMasteryData,
@@ -14,6 +15,7 @@ import {
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
 import { TrendLineChart } from '@/components/dashboard/TrendLineChart'
 import { MasteryChart } from '@/components/dashboard/MasteryChart'
+import { PageHeader } from '@/components/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -23,19 +25,28 @@ function KpiCard({
   icon: Icon,
   label,
   value,
+  tint = 'primary',
 }: {
   icon: typeof Flame
   label: string
   value: string | number
+  tint?: 'primary' | 'flame'
 }) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon className="size-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+      <CardContent className="flex items-center gap-3">
+        <div
+          className={cn(
+            'flex size-10 shrink-0 items-center justify-center rounded-xl',
+            tint === 'flame' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary',
+          )}
+        >
+          <Icon className="size-5" />
+        </div>
+        <div className="flex min-w-0 flex-col">
+          <span className="text-2xl leading-tight font-bold tabular-nums">{value}</span>
+          <span className="truncate text-xs text-muted-foreground">{label}</span>
+        </div>
       </CardContent>
     </Card>
   )
@@ -100,31 +111,35 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as DashboardFilter)}>
-          <TabsList>
-            {FILTERS.map((f) => (
-              <TabsTrigger key={f} value={f}>
-                {f}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
+      <PageHeader
+        icon={LayoutDashboard}
+        title="Dashboard"
+        description="Your discipline, quantified."
+        action={
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as DashboardFilter)}>
+            <TabsList>
+              {FILTERS.map((f) => (
+                <TabsTrigger key={f} value={f}>
+                  {f}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <KpiCard icon={BookOpen} label="Total Words" value={wordCount ?? 0} />
         <KpiCard icon={MessageSquareText} label="Total Phrases" value={phraseCount ?? 0} />
         <KpiCard icon={Clock} label="Practice Time" value={`${Math.round(totalPracticeSec / 60)}m`} />
         <KpiCard icon={Percent} label="Accuracy" value={`${accuracy}%`} />
-        <KpiCard icon={Flame} label="Day Streak" value={dayStreak} />
+        <KpiCard icon={Flame} label="Day Streak" value={dayStreak} tint="flame" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Activity Heatmap</CardTitle>
+            <CardTitle className="text-sm font-semibold">Activity Heatmap</CardTitle>
           </CardHeader>
           <CardContent>
             <ActivityHeatmap data={heatmapData} />
@@ -133,7 +148,7 @@ export function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Accuracy & Speed Trends</CardTitle>
+            <CardTitle className="text-sm font-semibold">Accuracy & Speed Trends</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div>
@@ -162,7 +177,7 @@ export function Dashboard() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Words vs. Phrases Mastery</CardTitle>
+            <CardTitle className="text-sm font-semibold">Words vs. Phrases Mastery</CardTitle>
           </CardHeader>
           <CardContent>
             <MasteryChart data={masteryData} />

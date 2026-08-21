@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Zap } from 'lucide-react'
+import { Info, Zap } from 'lucide-react'
 import { db, newId } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { buildPracticePool, type PracticeItem } from '@/lib/practice'
@@ -9,6 +9,7 @@ import {
   type PracticeConfig,
   type SessionResult,
 } from '@/hooks/use-practice-session'
+import { PageHeader } from '@/components/PageHeader'
 import { PreGameConfig } from '@/components/practice/PreGameConfig'
 import { GameScreen } from '@/components/practice/GameScreen'
 import { ResultView } from '@/components/practice/ResultView'
@@ -119,14 +120,17 @@ export function PracticeArena() {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
-      <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-        <Zap className="size-5" /> Practice Arena
-      </h1>
+      <PageHeader
+        icon={Zap}
+        title="Practice Arena"
+        description="Time-pressured recall — type fast, type right."
+      />
 
       {!selectedPairId && (
-        <p className="text-sm text-muted-foreground">
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" />
           Select a language pair in the header before starting a session.
-        </p>
+        </div>
       )}
 
       <PreGameConfig disabled={!selectedPairId} error={error} onStart={handleStart} />

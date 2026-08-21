@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PracticeItem } from '@/lib/practice'
 import {
@@ -52,7 +52,7 @@ function AnswerForm({ shake, onSubmit }: AnswerFormProps) {
         onChange={(e) => setValue(e.target.value)}
         placeholder="Type the translation…"
         className={cn(
-          'h-12 text-center text-lg',
+          'h-14 rounded-xl text-center text-xl',
           shake && 'border-destructive ring-3 ring-destructive/20',
         )}
       />
@@ -88,13 +88,19 @@ export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
         <Progress value={(sessionSecondsLeft / config.totalDurationSec) * 100} />
       </div>
 
-      <div className="flex items-center justify-center gap-6 text-sm">
-        <span className="text-emerald-500">✓ {correctCount}</span>
-        <span className="text-destructive">✗ {wrongCount}</span>
+      <div className="flex items-center justify-center gap-6 text-sm font-medium tabular-nums">
+        <span className="flex items-center gap-1 text-success">
+          <Check className="size-4" /> {correctCount}
+        </span>
+        <span className="flex items-center gap-1 text-destructive">
+          <X className="size-4" /> {wrongCount}
+        </span>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-6">
-        <span className="text-3xl font-bold tracking-tight">{currentItem?.prompt ?? '…'}</span>
+      <div className="flex flex-1 flex-col items-center justify-center gap-7">
+        <span className="text-center text-4xl font-bold tracking-tight text-balance">
+          {currentItem?.prompt ?? '…'}
+        </span>
 
         <AnswerForm key={itemSeq} shake={shake} onSubmit={submitAnswer} />
 
