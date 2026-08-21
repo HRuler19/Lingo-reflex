@@ -46,6 +46,10 @@ export function PracticeArena() {
   const [pool, setPool] = useState<PracticeItem[] | null>(null)
   const [result, setResult] = useState<SessionResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Captured at handleStart, not re-read live at handleFinish: the header's
+  // pair selector stays interactive during a session, so `selectedPairId`
+  // could otherwise point at a different pair by the time the session ends.
+  const [sessionPairId, setSessionPairId] = useState<string | null>(null)
 
   const words = useLiveQuery(
     () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).toArray() : []),
@@ -65,17 +69,18 @@ export function PracticeArena() {
     setError(null)
     setConfig(cfg)
     setPool(builtPool)
+    setSessionPairId(selectedPairId)
     setPhase('playing')
   }
 
   async function handleFinish(sessionResult: SessionResult) {
     setResult(sessionResult)
     setPhase('results')
-    if (!selectedPairId || !config) return
+    if (!sessionPairId || !config) return
 
     await db.sessions.add({
       id: newId('s'),
-      pairId: selectedPairId,
+      pairId: sessionPairId,
       mode: config.mode,
       direction: config.direction,
       totalDurationSec: sessionResult.totalDurationSec,
@@ -96,6 +101,7 @@ export function PracticeArena() {
     setConfig(null)
     setPool(null)
     setResult(null)
+    setSessionPairId(null)
   }
 
   if (phase === 'playing' && config && pool) {
