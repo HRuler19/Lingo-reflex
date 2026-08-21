@@ -43,7 +43,7 @@ export function Library() {
 
       {!selectedPairId ? (
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-          <Mascot pose="leanWalk" className="h-10 w-auto shrink-0" />
+          <Mascot pose="leanWalk" className="h-20 w-auto shrink-0" />
           <span className="flex items-start gap-2">
             <Info className="mt-0.5 size-4 shrink-0" />
             Select a language pair in the header to view its library.
@@ -106,7 +106,7 @@ export function Library() {
                 ))
               ) : (
                 <div className="col-span-full flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-                  <Mascot pose="stride" className="h-14 w-auto opacity-90" />
+                  <Mascot pose="stride" className="h-28 w-auto opacity-90" />
                   {search && words?.length ? 'No words match your search.' : 'No words yet.'}
                 </div>
               )}
@@ -151,7 +151,7 @@ export function Library() {
                 ))
               ) : (
                 <div className="col-span-full flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-                  <Mascot pose="stride" className="h-14 w-auto opacity-90" />
+                  <Mascot pose="stride" className="h-28 w-auto opacity-90" />
                   {search && phrases?.length ? 'No phrases match your search.' : 'No phrases yet.'}
                 </div>
               )}

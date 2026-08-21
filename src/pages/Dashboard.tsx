@@ -46,7 +46,7 @@ function KpiCard({
           <Icon className="size-5" />
         </div>
         <div className="flex min-w-0 flex-col">
-          <span className="text-2xl leading-tight font-extrabold tabular-nums">{value}</span>
+          <span className="text-2xl leading-tight tabular-nums">{value}</span>
           <span className="truncate text-xs font-medium text-muted-foreground">{label}</span>
         </div>
       </CardContent>

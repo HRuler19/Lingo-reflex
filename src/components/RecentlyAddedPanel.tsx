@@ -46,7 +46,7 @@ export function RecentlyAddedPanel({ title, items, emptyLabel, emptyPose }: Rece
           ))
         ) : (
           <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            <Mascot pose={emptyPose} className="h-14 w-auto opacity-90" />
+            <Mascot pose={emptyPose} className="h-28 w-auto opacity-90" />
             {emptyLabel}
           </div>
         )}

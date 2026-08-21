@@ -109,7 +109,7 @@ export function Settings() {
       <div className="grid items-start gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-          <Mascot pose="hipPointSide" className="h-12 w-auto shrink-0" />
+          <Mascot pose="hipPointSide" className="h-24 w-auto shrink-0" />
           <CardTitle className="flex items-center gap-2 text-sm font-semibold">
             <Languages className="size-4 text-muted-foreground" /> Language Pairs
           </CardTitle>
@@ -171,7 +171,7 @@ export function Settings() {
 
       <Card>
         <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-          <Mascot pose="presentSide" className="h-12 w-auto shrink-0" />
+          <Mascot pose="presentSide" className="h-24 w-auto shrink-0" />
           <CardTitle className="text-sm font-semibold">Data Portability</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">

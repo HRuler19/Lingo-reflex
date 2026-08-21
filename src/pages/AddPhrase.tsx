@@ -66,7 +66,7 @@ export function AddPhrase() {
 
       {!selectedPairId && (
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
-          <Mascot pose="jumpCheer" className="h-10 w-auto shrink-0" />
+          <Mascot pose="jumpCheer" className="h-20 w-auto shrink-0" />
           <span className="flex items-start gap-2">
             <Info className="mt-0.5 size-4 shrink-0" />
             Select a language pair in the header before adding phrases.

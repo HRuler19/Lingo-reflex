@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-16 text-center">
-        <Mascot pose="faceplant" className="h-24 w-auto" />
+        <Mascot pose="faceplant" className="h-48 w-auto" />
         <h2 className="text-lg font-semibold">
           {this.props.scope ? `${this.props.scope} hit a problem` : 'Something went wrong'}
         </h2>

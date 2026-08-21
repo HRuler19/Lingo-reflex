@@ -4,7 +4,6 @@ import { db } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { useThemeStore } from '@/store/theme-store'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import {
   Select,
@@ -22,7 +21,6 @@ export function Header() {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
       <SidebarTrigger aria-label="Toggle sidebar" />
-      <Separator orientation="vertical" className="h-6" />
 
       {/* Base UI's Select defaults to (and treats as controlled) value={null}
           for "nothing selected" — no need for a '' sentinel workaround. */}

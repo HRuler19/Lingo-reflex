@@ -136,7 +136,12 @@ function SidebarProvider({
           } as React.CSSProperties
         }
         className={cn(
-          "group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
+          // h-svh (not the shadcn default min-h-svh): AppLayout relies on
+          // SidebarInset's <main> being the scrolling element (overflow-y-auto),
+          // which only works if this wrapper is height-*bound*, not just
+          // height-floored — min-h-svh lets the whole tree grow with content
+          // instead, so the header/sidebar scroll away with the page.
+          "group/sidebar-wrapper flex h-svh w-full has-data-[variant=inset]:bg-sidebar",
           className
         )}
         {...props}

@@ -13,7 +13,7 @@ export function ChartEmptyState({ label, height = 160, pose = 'chinThink' }: Cha
       className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground"
       style={{ height }}
     >
-      <Mascot pose={pose} className="h-14 w-auto opacity-90" />
+      <Mascot pose={pose} className="h-28 w-auto opacity-90" />
       {label}
     </div>
   )

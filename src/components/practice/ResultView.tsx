@@ -52,7 +52,7 @@ export function ResultView({ result, onRestart }: ResultViewProps) {
     <div className="mx-auto flex max-w-xl flex-col items-center gap-6 pt-4">
       <Mascot
         pose={pose}
-        className="h-32 w-auto drop-shadow-[0_12px_20px_color-mix(in_oklch,var(--primary),transparent_70%)]"
+        className="h-64 w-auto drop-shadow-[0_12px_20px_color-mix(in_oklch,var(--primary),transparent_70%)]"
       />
       <div className="text-center">
         <h1 className="text-2xl font-bold tracking-tight">{headline}</h1>

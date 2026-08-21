@@ -9,7 +9,7 @@ import { Header } from './Header'
 function RouteFallback() {
   return (
     <div className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
-      <Mascot pose="hipLookUp" className="h-10 w-auto" />
+      <Mascot pose="hipLookUp" className="h-20 w-auto" />
       Loading…
     </div>
   )
@@ -23,13 +23,22 @@ export function AppLayout() {
       <AppSidebar />
       <SidebarInset>
         <Header />
-        <main className="relative flex-1 overflow-y-auto p-6">
+        {/*
+          A <div>, not another <main>: SidebarInset already renders the
+          page's one <main> landmark, so this is the scrollable content
+          region inside it, not a second landmark. min-h-0 overrides
+          flexbox's default min-height:auto on a flex item — without it, a
+          flex-1 child won't shrink below its content's natural height, so
+          it grows instead of scrolling, and the whole page/document scrolls
+          instead, dragging the header and sidebar along with it.
+        */}
+        <div className="relative min-h-0 flex-1 overflow-y-auto p-6">
           {/*
             A faint, fixed ambient wash behind every page — so a page whose
             content is deliberately narrow (the Practice Arena game screen
             keeps "clean focus mode" per the spec, not full-bleed) still
             reads as designed on a very wide monitor instead of as a form
-            floating in blank space. -z-10 relies on `main` being the
+            floating in blank space. -z-10 relies on this div being the
             positioned ancestor (relative) so it paints behind in-flow
             content per the stacking rules, not on DOM order.
           */}
@@ -51,7 +60,7 @@ export function AppLayout() {
               <Outlet />
             </ErrorBoundary>
           </Suspense>
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )
