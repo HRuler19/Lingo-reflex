@@ -19,7 +19,11 @@ export function Header() {
   const { theme, toggleTheme } = useThemeStore()
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+    // min-h-14 (not h-14) + a safe-area-aware padding-top: on a notched/
+    // Dynamic Island iPhone in the native shell, this bar would otherwise
+    // render underneath the status bar instead of below it. `env()` is 0px
+    // in a plain browser, so this is a no-op there.
+    <header className="flex min-h-14 shrink-0 items-center gap-2 border-b px-4 pt-[env(safe-area-inset-top)]">
       <SidebarTrigger aria-label="Toggle sidebar" />
 
       {/* Base UI's Select defaults to (and treats as controlled) value={null}

@@ -1,5 +1,5 @@
 import { lazy } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 
 // Route-level code splitting: Recharts (Dashboard) and the Practice Arena
@@ -19,7 +19,15 @@ const NotFound = lazy(() => import('@/pages/NotFound').then((m) => ({ default: m
 
 function App() {
   return (
-    <BrowserRouter>
+    // HashRouter, not BrowserRouter: the app now ships as a static SPA
+    // across several hosts that can't all be given a server-side rewrite
+    // rule — a Capacitor native shell, a packaged Electron app loading
+    // dist/index.html over file://, and the PWA's offline service-worker
+    // cache all need every route to resolve from the exact same on-disk
+    // entry point. A hash route never asks the host to resolve "/practice"
+    // as a real path in the first place, so it works identically everywhere
+    // without per-host routing config.
+    <HashRouter>
       <Routes>
         <Route element={<AppLayout />}>
           <Route index element={<Dashboard />} />
@@ -31,7 +39,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 

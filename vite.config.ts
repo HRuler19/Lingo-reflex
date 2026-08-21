@@ -4,12 +4,25 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Electron loads the built app straight off disk via file://, where an
+// absolute asset path like "/assets/x.js" resolves against the filesystem
+// root instead of dist/ — so that build needs relative ("./assets/x.js")
+// paths instead. Every other target (a real web host, Capacitor's local
+// server) wants root-absolute paths, so this only flips for the dedicated
+// `build:electron` script, never the default build.
+const isElectron = process.env.BUILD_TARGET === 'electron'
+
 // https://vite.dev/config/
 export default defineConfig({
+  base: isElectron ? './' : '/',
   plugins: [
     react(),
     tailwindcss(),
-    VitePWA({
+    // No service worker in the Electron build: the whole app is already
+    // bundled on disk with nothing to fetch over a network, so there's
+    // nothing for a SW to usefully cache — just another moving part that
+    // could fight with file:// loading for no benefit.
+    !isElectron && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {

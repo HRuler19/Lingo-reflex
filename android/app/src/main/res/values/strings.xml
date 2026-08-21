@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LexiPulse</string>
+    <string name="title_activity_main">LexiPulse</string>
+    <string name="package_name">com.lexipulse.app</string>
+    <string name="custom_url_scheme">com.lexipulse.app</string>
+</resources>

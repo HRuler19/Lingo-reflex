@@ -44,8 +44,17 @@ export function AppLayout() {
           the same. Non-PageHeader views (GameScreen, ResultView, the
           error/not-found pages, this Suspense fallback) carry their own
           top spacing since they can't lean on this padding either.
+
+          pb stays a plain arbitrary value (not px-6, to avoid also padding
+          top) plus the safe-area term for the home indicator on a native
+          shell — px is deliberately still the static px-6 Tailwind class,
+          not a safe-area-aware one: PageHeader's -mx-6 bleed cancels
+          exactly that, and pairing a static negative margin with a dynamic
+          safe-area padding here would throw that arithmetic off in
+          landscape on a notched device. Not handling that narrower case
+          for now rather than complicating the sticky-header math for it.
         */}
-        <div className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+        <div className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           {/*
             A faint, fixed ambient wash behind every page — so a page whose
             content is deliberately narrow (the Practice Arena game screen

@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# electron-builder output (ios/ and android/ carry their own .gitignore
+# for their native build artifacts — the projects themselves are checked in)
+release
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
