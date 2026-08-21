@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Info, Zap } from 'lucide-react'
+import { BookOpen, Info, MessageSquareText, Target, Zap } from 'lucide-react'
 import { db, newId } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { buildPracticePool, type PracticeItem } from '@/lib/practice'
@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { PreGameConfig } from '@/components/practice/PreGameConfig'
 import { GameScreen } from '@/components/practice/GameScreen'
 import { ResultView } from '@/components/practice/ResultView'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type Phase = 'config' | 'playing' | 'results'
 
@@ -65,6 +66,11 @@ export function PracticeArena() {
     () => (selectedPairId ? db.phrases.where('pairId').equals(selectedPairId).toArray() : []),
     [selectedPairId],
   )
+  const lastSession = useLiveQuery(async () => {
+    if (!selectedPairId) return undefined
+    const sorted = await db.sessions.where('pairId').equals(selectedPairId).sortBy('timestamp')
+    return sorted.at(-1)
+  }, [selectedPairId])
 
   function handleStart(cfg: PracticeConfig) {
     const builtPool = buildPracticePool(words ?? [], phrases ?? [], cfg.mode, cfg.direction)
@@ -118,8 +124,15 @@ export function PracticeArena() {
     return <ResultView result={result} onRestart={handleRestart} />
   }
 
+  const lastAccuracy =
+    lastSession && lastSession.correctCount + lastSession.wrongCount > 0
+      ? Math.round(
+          (lastSession.correctCount / (lastSession.correctCount + lastSession.wrongCount)) * 100,
+        )
+      : null
+
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <PageHeader
         icon={Zap}
         title="Practice Arena"
@@ -133,7 +146,46 @@ export function PracticeArena() {
         </div>
       )}
 
-      <PreGameConfig disabled={!selectedPairId} error={error} onStart={handleStart} />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,28rem)_1fr]">
+        <PreGameConfig disabled={!selectedPairId} error={error} onStart={handleStart} />
+
+        <Card className="h-fit">
+          <CardHeader>
+            <CardTitle className="text-sm font-semibold">Ready to Practice</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <BookOpen className="size-4.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold tabular-nums">{words?.length ?? 0}</span>
+                <span className="text-xs text-muted-foreground">Words available</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <MessageSquareText className="size-4.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold tabular-nums">{phrases?.length ?? 0}</span>
+                <span className="text-xs text-muted-foreground">Phrases available</span>
+              </div>
+            </div>
+            {lastAccuracy !== null && (
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
+                  <Target className="size-4.5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold tabular-nums">{lastAccuracy}%</span>
+                  <span className="text-xs text-muted-foreground">Accuracy last session</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

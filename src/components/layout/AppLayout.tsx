@@ -17,7 +17,20 @@ export function AppLayout() {
       <AppSidebar />
       <SidebarInset>
         <Header />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="relative flex-1 overflow-y-auto p-6">
+          {/*
+            A faint, fixed ambient wash behind every page — so a page whose
+            content is deliberately narrow (the Practice Arena game screen
+            keeps "clean focus mode" per the spec, not full-bleed) still
+            reads as designed on a very wide monitor instead of as a form
+            floating in blank space. -z-10 relies on `main` being the
+            positioned ancestor (relative) so it paints behind in-flow
+            content per the stacking rules, not on DOM order.
+          */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed top-14 right-0 -z-10 size-160 rounded-full bg-primary/6 blur-[110px] dark:bg-primary/10"
+          />
           {/*
             Suspense lives here, wrapping only the routed content, so a
             not-yet-fetched page chunk shows its loading state in the

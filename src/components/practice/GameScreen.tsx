@@ -74,7 +74,7 @@ export function GameScreen({ pool, config, onFinish }: GameScreenProps) {
   } = usePracticeSession({ pool, config, onFinish })
 
   return (
-    <div className="mx-auto flex h-full max-w-lg flex-col gap-8">
+    <div className="mx-auto flex h-full max-w-xl flex-col gap-8">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Time Left</span>

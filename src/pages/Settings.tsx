@@ -102,9 +102,10 @@ export function Settings() {
   }
 
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <PageHeader icon={SettingsIcon} title="Settings" description="Manage your language pairs and data." />
 
+      <div className="grid items-start gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm font-semibold">
@@ -229,6 +230,7 @@ export function Settings() {
           </Button>
         </CardContent>
       </Card>
+      </div>
 
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <DialogContent>

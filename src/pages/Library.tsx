@@ -63,7 +63,7 @@ export function Library() {
               <TabsTrigger value="phrases">Phrases ({filteredPhrases?.length ?? 0})</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="words" className="flex flex-col gap-2">
+            <TabsContent value="words" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredWords?.length ? (
                 filteredWords.map((w) => (
                   <div
@@ -101,13 +101,13 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                <p className="col-span-full rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                   {search && words?.length ? 'No words match your search.' : 'No words yet.'}
                 </p>
               )}
             </TabsContent>
 
-            <TabsContent value="phrases" className="flex flex-col gap-2">
+            <TabsContent value="phrases" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {filteredPhrases?.length ? (
                 filteredPhrases.map((p) => (
                   <div
@@ -145,7 +145,7 @@ export function Library() {
                   </div>
                 ))
               ) : (
-                <p className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                <p className="col-span-full rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                   {search && phrases?.length ? 'No phrases match your search.' : 'No phrases yet.'}
                 </p>
               )}

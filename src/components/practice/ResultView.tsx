@@ -45,7 +45,7 @@ export function ResultView({ result, onRestart }: ResultViewProps) {
     : 0
 
   return (
-    <div className="mx-auto flex max-w-lg flex-col items-center gap-6 pt-4">
+    <div className="mx-auto flex max-w-xl flex-col items-center gap-6 pt-4">
       <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <Trophy className="size-7" />
       </div>
