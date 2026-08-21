@@ -31,8 +31,21 @@ export function AppLayout() {
           flex-1 child won't shrink below its content's natural height, so
           it grows instead of scrolling, and the whole page/document scrolls
           instead, dragging the header and sidebar along with it.
+
+          No pt-6 here (only px-6 pb-6): PageHeader is sticky, and a sticky
+          element's "top" offset pins its *margin* edge to the scrollport,
+          not its border edge — with an ancestor top padding in the way, a
+          negative top margin on PageHeader ends up pushing its visible box
+          *down* by that same padding instead of canceling it, which is
+          exactly the gap that used to show scrolled-past content peeking
+          through between the app header and the page header. Giving this
+          container no top padding at all sidesteps the issue; PageHeader
+          supplies its own pt-6 so the unstuck (top-of-page) spacing looks
+          the same. Non-PageHeader views (GameScreen, ResultView, the
+          error/not-found pages, this Suspense fallback) carry their own
+          top spacing since they can't lean on this padding either.
         */}
-        <div className="relative min-h-0 flex-1 overflow-y-auto p-6">
+        <div className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-6">
           {/*
             A faint, fixed ambient wash behind every page — so a page whose
             content is deliberately narrow (the Practice Arena game screen

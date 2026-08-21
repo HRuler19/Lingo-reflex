@@ -49,7 +49,7 @@ export function ResultView({ result, onRestart }: ResultViewProps) {
     accuracy >= 70 ? 'Crushed it!' : accuracy >= 40 ? 'Solid round.' : 'Keep at it!'
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col items-center gap-6 pt-4">
+    <div className="mx-auto flex max-w-xl flex-col items-center gap-6 pt-6">
       <Mascot
         pose={pose}
         className="h-64 w-auto drop-shadow-[0_12px_20px_color-mix(in_oklch,var(--primary),transparent_70%)]"
