@@ -71,7 +71,7 @@ export function EditItemDialog({
                     type="button"
                     onClick={() => removeTranslation(t)}
                     aria-label={`Remove translation ${t}`}
-                    className="rounded-sm hover:bg-foreground/10"
+                    className="cursor-pointer rounded-sm hover:bg-foreground/10"
                   >
                     <X className="size-3" />
                   </button>
