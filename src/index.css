@@ -24,6 +24,8 @@
     --color-chart-accent: var(--chart-accent);
     --color-success: var(--success);
     --color-info: var(--info);
+    --color-success-text: var(--success-text);
+    --color-info-text: var(--info-text);
     --color-neon-cyan: var(--neon-cyan);
     --color-neon-pink: var(--neon-pink);
     --color-ring: var(--ring);
@@ -71,10 +73,15 @@
     --secondary: #efecf9;
     --secondary-foreground: #3c3a41;
     --muted: #efecf9;
-    --muted-foreground: #7a7686;
+    /* Darkened from #7a7686, which measured 4.06:1 on --background and
+       failed WCAG AA for body text. This clears 4.5:1 on both the app
+       background and the lighter card surface. */
+    --muted-foreground: #726e7e;
     --accent: #efe9ff;
     --accent-foreground: #6d28d9;
-    --destructive: #ea3939;
+    /* Used as text on a --destructive/10 tint, where #ea3939 measured
+       only 3.55:1. This clears 4.5:1 against that tint. */
+    --destructive: #ca3131;
     --border: #e3e0eb;
     --input: #d9d5e3;
     --ring: #7c3aed;
@@ -87,8 +94,15 @@
     /* success/info are a fixed status pair for chart series: green = correct,
        blue = wrong. Blue (not red) is used so the pair stays distinguishable
        for deuteranopia/protanopia — see references/color-formula.md. */
-    --success: #1cb854;
+    --success: #0eaa46;
     --info: #1899e8;
+    /* Text-only variants. WCAG asks 3:1 of a graphical object like a chart
+       bar but 4.5:1 of text, so a fill that is legible as a bar is not
+       automatically legible as a 12px label. These are the same hues taken
+       dark enough to clear 4.5:1 on --background (and so on cards too);
+       --success/--info stay tuned for the charts. */
+    --success-text: #00821e;
+    --info-text: #0073c2;
     --neon-cyan: #0891b2;
     --neon-pink: #db2777;
     --radius: 0.7rem;
@@ -131,6 +145,10 @@
     --chart-accent: #a78bfa;
     --success: #22c55e;
     --info: #3b82f6;
+    /* On the dark surface these already clear 4.5:1 as text, so the text
+       variants simply track the chart colors. */
+    --success-text: #4ade80;
+    --info-text: #7dabf8;
     --neon-cyan: #22d3ee;
     --neon-pink: #f472b6;
     --sidebar: oklch(0.185 0.016 295);

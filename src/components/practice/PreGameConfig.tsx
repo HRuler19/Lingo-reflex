@@ -59,7 +59,7 @@ export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) 
             <div className="flex flex-col gap-2">
               <Label>Game Type</Label>
               <Select value={mode} onValueChange={(v) => setMode(v as GameMode)}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full" aria-label="Game Type">
                   <SelectValue>{labelFor(GAME_MODE_OPTIONS)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -75,7 +75,7 @@ export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) 
             <div className="flex flex-col gap-2">
               <Label>Direction</Label>
               <Select value={direction} onValueChange={(v) => setDirection(v as GameDirection)}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full" aria-label="Direction">
                   <SelectValue>{labelFor(DIRECTION_OPTIONS)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -91,7 +91,7 @@ export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) 
             <div className="flex flex-col gap-2">
               <Label>Session Duration</Label>
               <Select value={String(durationSec)} onValueChange={(v) => setDurationSec(Number(v))}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full" aria-label="Session Duration">
                   <SelectValue>{labelFor(DURATION_OPTIONS)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -107,7 +107,7 @@ export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) 
             <div className="flex flex-col gap-2">
               <Label>Per-Item Time Limit</Label>
               <Select value={String(perItemSec)} onValueChange={(v) => setPerItemSec(Number(v))}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full" aria-label="Per-Item Time Limit">
                   <SelectValue>{labelFor(PER_ITEM_OPTIONS)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>

@@ -75,14 +75,10 @@ export function Dashboard() {
   const { selectedPairId } = useLanguagePairStore()
   const [filter, setFilter] = useState<DashboardFilter>('All Time')
 
-  const wordCount = useLiveQuery(
-    () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).count() : 0),
-    [selectedPairId],
-  )
-  const phraseCount = useLiveQuery(
-    () => (selectedPairId ? db.phrases.where('pairId').equals(selectedPairId).count() : 0),
-    [selectedPairId],
-  )
+  // Counts are derived from the arrays below rather than issued as their own
+  // count() queries: each useLiveQuery opens a separate Dexie observable that
+  // re-runs and re-renders on every write to the same table, so querying
+  // words twice doubled that work for a number already in hand.
   const words = useLiveQuery(
     () => (selectedPairId ? db.words.where('pairId').equals(selectedPairId).toArray() : []),
     [selectedPairId],
@@ -121,6 +117,9 @@ export function Dashboard() {
   }, [filteredSessions])
 
   const dayStreak = useMemo(() => computeDayStreak(sessions ?? []), [sessions])
+  const wordCount = words?.length ?? 0
+  const phraseCount = phrases?.length ?? 0
+
   const heatmapData = useMemo(() => buildActivityHeatmapData(sessions ?? []), [sessions])
   const trendData = useMemo(() => buildTrendData(filteredSessions), [filteredSessions])
   const masteryData = useMemo(
@@ -149,8 +148,8 @@ export function Dashboard() {
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <KpiCard icon={BookOpen} label="Total Words" value={wordCount ?? 0} />
-        <KpiCard icon={MessageSquareText} label="Total Phrases" value={phraseCount ?? 0} tint="info" />
+        <KpiCard icon={BookOpen} label="Total Words" value={wordCount} />
+        <KpiCard icon={MessageSquareText} label="Total Phrases" value={phraseCount} tint="info" />
         <KpiCard icon={Clock} label="Practice Time" value={`${Math.round(totalPracticeSec / 60)}m`} />
         <KpiCard icon={Percent} label="Accuracy" value={`${accuracy}%`} tint="success" />
         <KpiCard icon={Flame} label="Day Streak" value={dayStreak} tint="flame" />
@@ -182,7 +181,7 @@ export function Dashboard() {
               <div className="mb-1 flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground">Accuracy</p>
                 {latestTrend && (
-                  <span className="rounded-md border-2 border-success px-1.5 py-0.5 text-xs font-medium text-success">
+                  <span className="rounded-md border-2 border-success px-1.5 py-0.5 text-xs font-medium text-success-text">
                     {latestTrend.accuracy}% latest
                   </span>
                 )}
@@ -202,7 +201,7 @@ export function Dashboard() {
               <div className="mb-1 flex items-center justify-between">
                 <p className="text-xs font-medium text-muted-foreground">Avg. Response Time</p>
                 {latestTrend && (
-                  <span className="rounded-md border-2 border-info px-1.5 py-0.5 text-xs font-medium text-info">
+                  <span className="rounded-md border-2 border-info px-1.5 py-0.5 text-xs font-medium text-info-text">
                     {(latestTrend.avgResponseMs / 1000).toFixed(1)}s latest
                   </span>
                 )}

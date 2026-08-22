@@ -18,7 +18,7 @@ export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar()
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" role="navigation" aria-label="Main">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
           <Mascot pose="armsCrossed" className="h-8 w-auto shrink-0" />

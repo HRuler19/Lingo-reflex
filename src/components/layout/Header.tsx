@@ -29,7 +29,7 @@ export function Header() {
       {/* Base UI's Select defaults to (and treats as controlled) value={null}
           for "nothing selected" — no need for a '' sentinel workaround. */}
       <Select value={selectedPairId} onValueChange={selectPair}>
-        <SelectTrigger className="w-48" size="sm">
+        <SelectTrigger className="w-48" size="sm" aria-label="Language pair">
           <SelectValue placeholder="Select language pair">
             {(value: string | null) => {
               const pair = pairs?.find((p) => p.id === value)

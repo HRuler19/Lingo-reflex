@@ -24,9 +24,9 @@ export function AppLayout() {
       <SidebarInset>
         <Header />
         {/*
-          A <div>, not another <main>: SidebarInset already renders the
-          page's one <main> landmark, so this is the scrollable content
-          region inside it, not a second landmark. min-h-0 overrides
+          This is the page's <main> landmark — SidebarInset is a plain layout
+          column, so the app header above stays a `banner` instead of being
+          demoted by sitting inside main. min-h-0 overrides
           flexbox's default min-height:auto on a flex item — without it, a
           flex-1 child won't shrink below its content's natural height, so
           it grows instead of scrolling, and the whole page/document scrolls
@@ -54,7 +54,7 @@ export function AppLayout() {
           landscape on a notched device. Not handling that narrower case
           for now rather than complicating the sticky-header math for it.
         */}
-        <div className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <main className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           {/*
             A faint, fixed ambient wash behind every page — so a page whose
             content is deliberately narrow (the Practice Arena game screen
@@ -82,7 +82,7 @@ export function AppLayout() {
               <Outlet />
             </ErrorBoundary>
           </Suspense>
-        </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )
