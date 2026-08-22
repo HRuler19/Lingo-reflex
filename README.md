@@ -47,14 +47,32 @@ Prebuilt apps are attached to every [**GitHub Release**](https://github.com/HRul
 | Platform | File | Notes |
 |---|---|---|
 | **macOS** (Apple Silicon) | `LexiPulse-*-arm64.dmg` | Unsigned — see [first launch](#first-launch-on-macos) |
-| **macOS** (Intel) | `LexiPulse-*-x64.dmg` | Unsigned — see [first launch](#first-launch-on-macos) |
-| **Windows** | `LexiPulse-Setup-*.exe` | SmartScreen may warn on first run |
+| **macOS** (Intel) | `LexiPulse-*.dmg` | Unsigned — see [first launch](#first-launch-on-macos) |
+| **Windows** | `LexiPulse Setup *.exe` | SmartScreen may warn on first run |
 | **Linux** | `LexiPulse-*.AppImage` | `chmod +x` then run |
-| **Web / mobile** | — | Open the site and *Add to Home Screen* — it installs as a PWA and works offline |
+| **Android** | `LexiPulse-*.apk` | Sideload — see [installing on Android](#installing-on-android) |
+| **iPhone / iPad** | — | Install as a PWA — see [iOS](#ios) |
 
-Android and iOS are built from the same codebase via Capacitor; store builds
-require developer accounts, so they aren't published here yet. You can build
-them yourself — see [Running on other platforms](#running-on-other-platforms).
+#### Installing on Android
+
+The APK is debug-signed rather than Play-Store-signed, so Android treats it as
+coming from an unknown source. Download it, tap it, and allow installation when
+prompted (*Settings → Apps → Special access → Install unknown apps*).
+
+#### iOS
+
+**There is no downloadable iOS build, and there cannot be one.** Apple only
+permits installation through the App Store, TestFlight, or a build signed
+against specific registered device UDIDs — an `.ipa` attached to a release page
+is not installable by anyone who downloads it. Publishing properly needs a paid
+Apple Developer account.
+
+In the meantime the PWA is a genuine substitute on iOS: open the site in Safari
+→ **Share** → **Add to Home Screen**. It gets its own icon, launches without
+browser chrome, and works fully offline — the app never needed a network anyway.
+
+The native iOS project is still in the repo and builds fine locally
+(`npm run ios:open`) if you have Xcode.
 
 #### First launch on macOS
 
