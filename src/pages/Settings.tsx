@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { db, newId, type LanguagePair } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { runDbAction } from '@/store/toast-store'
 import { downloadTextFile, exportCsv, exportJson, importCsv, importJson } from '@/lib/backup'
 import { PageHeader } from '@/components/PageHeader'
 import { Mascot } from '@/components/Mascot'
@@ -37,24 +38,35 @@ export function Settings() {
   async function handleAddPair(e: React.FormEvent) {
     e.preventDefault()
     if (!sourceLang.trim() || !targetLang.trim()) return
-    const id = await db.languagePairs.add({
-      id: newId('pair'),
-      sourceLanguage: sourceLang.trim(),
-      targetLanguage: targetLang.trim(),
-      createdAt: Date.now(),
-    })
+    const id = newId('pair')
+    const added = await runDbAction(
+      () =>
+        db.languagePairs.add({
+          id,
+          sourceLanguage: sourceLang.trim(),
+          targetLanguage: targetLang.trim(),
+          createdAt: Date.now(),
+        }),
+      { errorMessage: 'Could not add that language pair.' },
+    )
+    if (!added) return
     if (!selectedPairId) selectPair(id)
     setSourceLang('')
     setTargetLang('')
   }
 
   async function handleDeletePair(id: string) {
-    await db.transaction('rw', db.languagePairs, db.words, db.phrases, db.sessions, async () => {
-      await db.languagePairs.delete(id)
-      await db.words.where('pairId').equals(id).delete()
-      await db.phrases.where('pairId').equals(id).delete()
-      await db.sessions.where('pairId').equals(id).delete()
-    })
+    const deleted = await runDbAction(
+      () =>
+        db.transaction('rw', db.languagePairs, db.words, db.phrases, db.sessions, async () => {
+          await db.languagePairs.delete(id)
+          await db.words.where('pairId').equals(id).delete()
+          await db.phrases.where('pairId').equals(id).delete()
+          await db.sessions.where('pairId').equals(id).delete()
+        }),
+      { errorMessage: 'Could not delete that language pair.' },
+    )
+    if (!deleted) return
     if (selectedPairId === id) selectPair(null)
   }
 
@@ -104,12 +116,17 @@ export function Settings() {
   }
 
   async function handleConfirmReset() {
-    await db.transaction('rw', db.languagePairs, db.words, db.phrases, db.sessions, async () => {
-      await db.languagePairs.clear()
-      await db.words.clear()
-      await db.phrases.clear()
-      await db.sessions.clear()
-    })
+    const cleared = await runDbAction(
+      () =>
+        db.transaction('rw', db.languagePairs, db.words, db.phrases, db.sessions, async () => {
+          await db.languagePairs.clear()
+          await db.words.clear()
+          await db.phrases.clear()
+          await db.sessions.clear()
+        }),
+      { errorMessage: 'Could not clear your data.' },
+    )
+    if (!cleared) return
     selectPair(null)
     setStatus(null)
     setResetDialogOpen(false)

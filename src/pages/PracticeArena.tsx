@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { BookOpen, Info, MessageSquareText, Target, Zap } from 'lucide-react'
 import { db, newId } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { runDbAction } from '@/store/toast-store'
 import { buildPracticePool, type PracticeItem } from '@/lib/practice'
 import {
   type ItemOutcome,
@@ -91,22 +92,28 @@ export function PracticeArena() {
     setPhase('results')
     if (!sessionPairId || !config) return
 
-    await db.sessions.add({
-      id: newId('s'),
-      pairId: sessionPairId,
-      mode: config.mode,
-      direction: config.direction,
-      totalDurationSec: sessionResult.totalDurationSec,
-      usedDurationSec: sessionResult.usedDurationSec,
-      timePerItemSec: sessionResult.timePerItemSec,
-      totalItems: sessionResult.totalItems,
-      correctCount: sessionResult.correctCount,
-      wrongCount: sessionResult.wrongCount,
-      avgResponseTimeMs: sessionResult.avgResponseTimeMs,
-      timestamp: Date.now(),
-    })
-
-    await applyOutcomesToStats(sessionResult.outcomes)
+    // A whole practice session is on the line here, so a failed write has to
+    // say so rather than quietly discarding the user's work.
+    await runDbAction(
+      async () => {
+        await db.sessions.add({
+          id: newId('s'),
+          pairId: sessionPairId,
+          mode: config.mode,
+          direction: config.direction,
+          totalDurationSec: sessionResult.totalDurationSec,
+          usedDurationSec: sessionResult.usedDurationSec,
+          timePerItemSec: sessionResult.timePerItemSec,
+          totalItems: sessionResult.totalItems,
+          correctCount: sessionResult.correctCount,
+          wrongCount: sessionResult.wrongCount,
+          avgResponseTimeMs: sessionResult.avgResponseTimeMs,
+          timestamp: Date.now(),
+        })
+        await applyOutcomesToStats(sessionResult.outcomes)
+      },
+      { errorMessage: 'Could not save this session. Your progress for it was not recorded.' },
+    )
   }
 
   function handleRestart() {

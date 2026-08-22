@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Info, Library as LibraryIcon, Pencil, Search, Trash2 } from 'lucide-react'
 import { db, type Phrase, type Word } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { runDbAction } from '@/store/toast-store'
 import { EditItemDialog } from '@/components/library/EditItemDialog'
 import { PageHeader } from '@/components/PageHeader'
 import { Mascot } from '@/components/Mascot'
@@ -176,7 +177,11 @@ export function Library() {
           textLabel="Word"
           initialText={editingWord.term}
           initialTranslations={editingWord.translations}
-          onSave={(term, translations) => db.words.update(editingWord.id, { term, translations })}
+          onSave={(term, translations) =>
+            void runDbAction(() => db.words.update(editingWord.id, { term, translations }), {
+              errorMessage: `Could not save changes to "${term}".`,
+            })
+          }
         />
       )}
 
@@ -189,7 +194,9 @@ export function Library() {
           initialText={editingPhrase.phrase}
           initialTranslations={editingPhrase.translations}
           onSave={(phrase, translations) =>
-            db.phrases.update(editingPhrase.id, { phrase, translations })
+            void runDbAction(() => db.phrases.update(editingPhrase.id, { phrase, translations }), {
+              errorMessage: `Could not save changes to "${phrase}".`,
+            })
           }
         />
       )}
@@ -201,8 +208,11 @@ export function Library() {
         description={`This permanently removes this ${deleteTarget?.kind ?? 'item'} from your library. This can't be undone.`}
         onConfirm={() => {
           if (!deleteTarget) return
-          if (deleteTarget.kind === 'word') db.words.delete(deleteTarget.id)
-          else db.phrases.delete(deleteTarget.id)
+          const { kind, id, label } = deleteTarget
+          void runDbAction(
+            () => (kind === 'word' ? db.words.delete(id) : db.phrases.delete(id)),
+            { errorMessage: `Could not delete "${label}".` },
+          )
         }}
       />
     </div>

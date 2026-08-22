@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { AlertTriangle, Info, MessageSquarePlus } from 'lucide-react'
 import { db, newId, type Phrase } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
+import { runDbAction } from '@/store/toast-store'
 import { PageHeader } from '@/components/PageHeader'
 import { RecentlyAddedPanel } from '@/components/RecentlyAddedPanel'
 import { Mascot } from '@/components/Mascot'
@@ -38,20 +39,26 @@ export function AddPhrase() {
     e.preventDefault()
     if (!selectedPairId || !phrase.trim() || !translation.trim()) return
 
-    if (existing) {
-      await db.phrases.update(existing.id, {
-        translations: Array.from(new Set([...existing.translations, translation.trim()])),
-      })
-    } else {
-      await db.phrases.add({
-        id: newId('p'),
-        pairId: selectedPairId,
-        phrase: phrase.trim(),
-        translations: [translation.trim()],
-        createdAt: Date.now(),
-        stats: { correct: 0, wrong: 0 },
-      })
-    }
+    const saved = await runDbAction(
+      () =>
+        existing
+          ? db.phrases.update(existing.id, {
+              translations: Array.from(new Set([...existing.translations, translation.trim()])),
+            })
+          : db.phrases.add({
+              id: newId('p'),
+              pairId: selectedPairId,
+              phrase: phrase.trim(),
+              translations: [translation.trim()],
+              createdAt: Date.now(),
+              stats: { correct: 0, wrong: 0 },
+            }),
+      { errorMessage: `Could not save "${phrase.trim()}".` },
+    )
+
+    // Only clear the form once the write actually committed, so a failure
+    // doesn't silently discard what the user typed.
+    if (!saved) return
     setPhrase('')
     setTranslation('')
   }
