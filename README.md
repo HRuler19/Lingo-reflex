@@ -46,10 +46,10 @@ Prebuilt apps are attached to every [**GitHub Release**](https://github.com/HRul
 
 | Platform | File | Notes |
 |---|---|---|
-| **macOS** (Apple Silicon) | `LexiPulse-*-arm64.dmg` | Unsigned — see [first launch](#first-launch-on-macos) |
-| **macOS** (Intel) | `LexiPulse-*.dmg` | Unsigned — see [first launch](#first-launch-on-macos) |
-| **Windows** | `LexiPulse Setup *.exe` | SmartScreen may warn on first run |
-| **Linux** | `LexiPulse-*.AppImage` | `chmod +x` then run |
+| **macOS** (Apple Silicon) | `LexiPulse_*_aarch64.dmg` | ~2.3MB · unsigned, see [first launch](#first-launch-on-macos) |
+| **macOS** (Intel) | `LexiPulse_*_x64.dmg` | unsigned, see [first launch](#first-launch-on-macos) |
+| **Windows** | `LexiPulse_*_x64-setup.exe` | SmartScreen may warn on first run |
+| **Linux** | `lexipulse_*_amd64.AppImage` | `chmod +x` then run |
 | **Android** | `LexiPulse-*.apk` | Sideload — see [installing on Android](#installing-on-android) |
 | **iPhone / iPad** | — | Install as a PWA — see [iOS](#ios) |
 
@@ -132,8 +132,8 @@ npm run test:watch   # ...or in watch mode
 npm run lint         # oxlint
 ```
 
-**Requirements:** Node 22+. Building the iOS app additionally needs Xcode;
-Android needs Android Studio.
+**Requirements:** Node 22+. The desktop build additionally needs
+[Rust](https://rustup.rs); iOS needs Xcode and Android needs Android Studio.
 
 ### Running on other platforms
 
@@ -147,16 +147,15 @@ npm run ios:open       # build, sync, open Xcode
 npm run android:open   # build, sync, open Android Studio
 npm run cap:sync       # rebuild + copy into both native projects
 
-# Desktop (Electron)
-npm run electron:dev   # run against the dev server, with reload
-npm run electron:pack  # package an unpacked app (fast, for testing)
-npm run electron:dist  # build installers (dmg/zip, nsis, AppImage)
+# Desktop (Tauri)
+npm run tauri:dev      # run against the dev server, with reload
+npm run tauri:build    # build installers (dmg, nsis, AppImage)
 ```
 
-Both native projects (`ios/`, `android/`) are checked in — they're configuration,
-not build output; their own `.gitignore`s exclude the actual artifacts. Icons and
-splash screens for both are generated from `assets/` via
-`npx capacitor-assets generate`.
+The native projects (`ios/`, `android/`, `src-tauri/`) are checked in — they're
+configuration, not build output; their own `.gitignore`s exclude the actual
+artifacts. Mobile icons and splash screens are generated from `assets/` via
+`npx capacitor-assets generate`; desktop icons via `npx tauri icon`.
 
 ---
 
@@ -172,7 +171,7 @@ splash screens for both are generated from `assets/` via
 | State | Zustand | Two tiny stores: theme, active language pair |
 | Database | Dexie over IndexedDB | Structured, indexed, and genuinely offline |
 | Charts | Hand-rolled SVG | See [below](#why-there-is-no-chart-library) |
-| Native | Capacitor (mobile), Electron (desktop) | One web build, four platforms |
+| Native | Capacitor (mobile), Tauri (desktop) | One web build, every platform |
 
 ### Project layout
 
@@ -193,7 +192,7 @@ src/
     library/                 Word/phrase edit dialog
     ui/                      shadcn/ui primitives
   pages/                     One file per route
-electron/main.cjs            Desktop main process
+src-tauri/                   Tauri desktop shell (Rust)
 ios/, android/               Capacitor native projects
 ```
 
@@ -227,11 +226,38 @@ library version never had.
 </details>
 
 <details>
+<summary><strong>Why Tauri instead of Electron on the desktop</strong></summary>
+
+The desktop app originally shipped as Electron. Electron bundles its own copy
+of Chromium and Node, which put the download at **114MB** for what is, at
+runtime, a 1.2MB static site.
+
+Tauri renders through the operating system's own webview — WKWebView on macOS,
+WebView2 on Windows, WebKitGTK on Linux — so nothing browser-shaped ships in the
+bundle:
+
+```
+macOS .dmg      114MB  ->  2.3MB     (50x smaller)
+installed .app  276MB  ->  4.1MB
+```
+
+The Rust release profile is tuned for size on top of that (`lto`,
+`codegen-units = 1`, `opt-level = "s"`, `panic = "abort"`, `strip`), which took
+the disk image from 3.9MB to 2.3MB.
+
+The only application code this cost was file saving: a blob plus `<a download>`
+works in a browser but is inert in a desktop webview, which has no download
+manager to hand the blob to. `downloadTextFile` now branches — a real native
+save dialog in the desktop shell, the blob path everywhere else — and the Tauri
+plugin modules are imported lazily so the web bundle never pulls them in.
+</details>
+
+<details>
 <summary><strong>Why HashRouter instead of BrowserRouter</strong></summary>
 
 The app ships as a static SPA across hosts that can't share one server-rewrite
-rule: a Capacitor native shell, a packaged Electron app loading `dist/index.html`
-over `file://`, and the PWA's offline cache.
+rule: a Capacitor native shell, the Tauri desktop shell, and the PWA's offline
+cache.
 
 A hash route never asks the host to resolve `/practice` as a real path, so the
 identical build works everywhere with no per-host routing config.

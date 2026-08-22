@@ -58,14 +58,26 @@ export function Settings() {
     if (selectedPairId === id) selectPair(null)
   }
 
-  async function handleExportJson() {
-    const json = await exportJson()
-    downloadTextFile(json, `lexipulse-backup-${new Date().toISOString().slice(0, 10)}.json`, 'application/json')
-  }
+  const today = () => new Date().toISOString().slice(0, 10)
 
-  async function handleExportCsv() {
-    const csv = await exportCsv()
-    downloadTextFile(csv, `lexipulse-export-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv')
+  async function handleExport(kind: 'json' | 'csv') {
+    try {
+      const content = kind === 'json' ? await exportJson() : await exportCsv()
+      const filename = `lexipulse-${kind === 'json' ? 'backup' : 'export'}-${today()}.${kind}`
+      const mimeType = kind === 'json' ? 'application/json' : 'text/csv'
+
+      // On desktop this opens a native save dialog, which the user can
+      // cancel — that isn't an error, so say nothing in that case.
+      const saved = await downloadTextFile(content, filename, mimeType)
+      if (saved) {
+        setStatus({ kind: 'success', text: `Exported ${filename}.` })
+      }
+    } catch (err) {
+      setStatus({
+        kind: 'error',
+        text: err instanceof Error ? err.message : 'Could not export your data.',
+      })
+    }
   }
 
   async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -177,10 +189,10 @@ export function Settings() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" className="justify-start gap-2" onClick={handleExportJson}>
+            <Button variant="outline" className="justify-start gap-2" onClick={() => handleExport('json')}>
               <Download className="size-4" /> Export JSON
             </Button>
-            <Button variant="outline" className="justify-start gap-2" onClick={handleExportCsv}>
+            <Button variant="outline" className="justify-start gap-2" onClick={() => handleExport('csv')}>
               <Download className="size-4" /> Export CSV
             </Button>
           </div>

@@ -12,9 +12,12 @@ dist
 dist-ssr
 *.local
 
-# electron-builder output (ios/ and android/ carry their own .gitignore
-# for their native build artifacts — the projects themselves are checked in)
+# Native build output. The ios/, android/ and src-tauri/ projects themselves
+# are checked in — they're configuration, not artifacts — and each carries its
+# own .gitignore for the products of building them.
 release
+src-tauri/target
+src-tauri/gen/schemas
 
 # Editor directories and files
 .vscode/*

@@ -221,7 +221,12 @@ export async function importCsv(text: string): Promise<void> {
   })
 }
 
-export function downloadTextFile(content: string, filename: string, mimeType: string): void {
+/** True inside the Tauri desktop shell, false on web/PWA/Capacitor. */
+function isTauri(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+}
+
+function browserDownload(content: string, filename: string, mimeType: string): void {
   const blob = new Blob([content], { type: mimeType })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -233,4 +238,41 @@ export function downloadTextFile(content: string, filename: string, mimeType: st
   a.click()
   a.remove()
   URL.revokeObjectURL(url)
+}
+
+/**
+ * Saves generated text to a file the user chooses.
+ *
+ * The blob + `<a download>` trick works in a browser but is inert in the
+ * desktop webview, which has no download manager to hand the blob to — the
+ * click would silently do nothing. So the Tauri build goes through a real
+ * native save dialog instead, and the plugin modules are imported lazily so
+ * the web bundle never pulls them in.
+ *
+ * Returns false if the user cancelled the dialog, true otherwise.
+ */
+export async function downloadTextFile(
+  content: string,
+  filename: string,
+  mimeType: string,
+): Promise<boolean> {
+  if (!isTauri()) {
+    browserDownload(content, filename, mimeType)
+    return true
+  }
+
+  const [{ save }, { writeTextFile }] = await Promise.all([
+    import('@tauri-apps/plugin-dialog'),
+    import('@tauri-apps/plugin-fs'),
+  ])
+
+  const extension = filename.split('.').pop() ?? 'txt'
+  const path = await save({
+    defaultPath: filename,
+    filters: [{ name: extension.toUpperCase(), extensions: [extension] }],
+  })
+  if (!path) return false
+
+  await writeTextFile(path, content)
+  return true
 }
