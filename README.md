@@ -12,7 +12,7 @@ speed are moving. No account, no backend, no network. Your data never leaves
 your device.
 
 [![CI](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml/badge.svg)](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml)
-&nbsp;![Tests](https://img.shields.io/badge/tests-148%20passing-brightgreen)
+&nbsp;![Tests](https://img.shields.io/badge/tests-157%20passing-brightgreen)
 &nbsp;![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
 &nbsp;![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -296,7 +296,7 @@ correctly. See `lib/backup.ts`.
 
 ### Testing
 
-148 tests across 15 files. Beyond the pure logic — date bucketing and streaks,
+157 tests across 16 files. Beyond the pure logic — date bucketing and streaks,
 practice pool construction, answer matching, CSV round-tripping including
 formula injection and delimiter escaping, the session game loop, and chart
 tick/curve maths — the page-level tests drive the real Dexie schema against an

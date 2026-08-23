@@ -14,8 +14,8 @@ import {
 } from '@/lib/practice'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { NumberField } from '@/components/ui/number-field'
 import {
   Select,
   SelectContent,
@@ -182,17 +182,14 @@ export function PreGameConfig({ disabled, error, words, phrases, onStart }: PreG
                   </SelectContent>
                 </Select>
                 {needsLimit && (
-                  <Input
+                  <NumberField
                     id="scope-limit"
-                    type="number"
-                    inputMode="numeric"
+                    label="How many entries"
                     min={1}
-                    step={1}
-                    className="w-24 tabular-nums"
+                    className="w-32"
                     value={limitText}
-                    onChange={(e) => setLimitText(e.target.value)}
-                    aria-label="How many entries"
-                    aria-invalid={!limitIsValid}
+                    onValueChange={setLimitText}
+                    invalid={!limitIsValid}
                   />
                 )}
               </div>
