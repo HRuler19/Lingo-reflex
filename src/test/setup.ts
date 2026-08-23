@@ -17,3 +17,16 @@ import { cleanup } from '@testing-library/react'
 afterEach(() => {
   cleanup()
 })
+
+// jsdom has no ResizeObserver, and the charts measure their container with one
+// (see components/dashboard/chart-math.ts). A stub keeps the measurement at 0,
+// which is exactly what a chart renders as before its first measurement — so
+// the surrounding page still mounts and can be asserted on.
+if (!('ResizeObserver' in globalThis)) {
+  class ResizeObserverStub implements ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  globalThis.ResizeObserver = ResizeObserverStub
+}

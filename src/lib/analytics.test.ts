@@ -7,6 +7,7 @@ import {
   buildTrendData,
   filterSessionsByPeriod,
   getWeekdayOfDateKey,
+  computeDayStreak,
 } from './analytics'
 import type { GameSession, Phrase, Word } from '@/db/schema'
 
@@ -155,5 +156,62 @@ describe('getWeekdayOfDateKey', () => {
     process.env.TZ = 'UTC'
     expect(getWeekdayOfDateKey('2026-01-11')).toBe(0) // Sunday
     expect(getWeekdayOfDateKey('2026-01-12')).toBe(1) // Monday
+  })
+})
+
+
+describe('computeDayStreak', () => {
+  const DAY = 24 * 60 * 60 * 1000
+
+  /** A timestamp `daysAgo` days back, at midday to stay clear of DST edges. */
+  function daysAgo(n: number): { timestamp: number } {
+    const d = new Date()
+    d.setHours(12, 0, 0, 0)
+    return { timestamp: d.getTime() - n * DAY }
+  }
+
+  it('is zero with no sessions at all', () => {
+    expect(computeDayStreak([])).toBe(0)
+  })
+
+  it('counts a session today', () => {
+    expect(computeDayStreak([daysAgo(0)])).toBe(1)
+  })
+
+  it('still counts when today has no session but yesterday does', () => {
+    // The grace day: a streak shouldn't read as broken just because the user
+    // hasn't practised yet today.
+    expect(computeDayStreak([daysAgo(1)])).toBe(1)
+  })
+
+  it('is broken once a whole day has been missed', () => {
+    expect(computeDayStreak([daysAgo(2)])).toBe(0)
+  })
+
+  it('counts a run of consecutive days', () => {
+    expect(computeDayStreak([daysAgo(0), daysAgo(1), daysAgo(2), daysAgo(3)])).toBe(4)
+  })
+
+  it('counts a consecutive run that ends yesterday', () => {
+    expect(computeDayStreak([daysAgo(1), daysAgo(2), daysAgo(3)])).toBe(3)
+  })
+
+  it('stops at the first gap rather than counting every active day', () => {
+    // Active on 0,1,3,4 — the streak is 2, not 4.
+    expect(computeDayStreak([daysAgo(0), daysAgo(1), daysAgo(3), daysAgo(4)])).toBe(2)
+  })
+
+  it('counts a day once however many sessions it holds', () => {
+    expect(computeDayStreak([daysAgo(0), daysAgo(0), daysAgo(0), daysAgo(1)])).toBe(2)
+  })
+
+  it('is unaffected by the order sessions arrive in', () => {
+    const shuffled = [daysAgo(2), daysAgo(0), daysAgo(3), daysAgo(1)]
+    expect(computeDayStreak(shuffled)).toBe(4)
+  })
+
+  it('ignores sessions dated in the future rather than counting them', () => {
+    // Clock skew or an edited import shouldn't inflate the streak.
+    expect(computeDayStreak([daysAgo(-3), daysAgo(0)])).toBe(1)
   })
 })

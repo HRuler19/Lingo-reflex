@@ -8,8 +8,8 @@ import {
   buildActivityHeatmapData,
   buildMasteryData,
   buildTrendData,
+  computeDayStreak,
   filterSessionsByPeriod,
-  toDateKey,
   type DashboardFilter,
 } from '@/lib/analytics'
 import { ActivityHeatmap } from '@/components/dashboard/ActivityHeatmap'
@@ -52,23 +52,6 @@ function KpiCard({
       </CardContent>
     </Card>
   )
-}
-
-/** Consecutive days (ending today or yesterday) with at least one session. */
-function computeDayStreak(sessions: { timestamp: number }[]): number {
-  if (sessions.length === 0) return 0
-  const days = new Set(sessions.map((s) => toDateKey(s.timestamp)))
-  const cursor = new Date()
-  let streak = 0
-  // Allow the streak to still count if today has no session yet but yesterday does.
-  if (!days.has(toDateKey(cursor.getTime()))) {
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  while (days.has(toDateKey(cursor.getTime()))) {
-    streak += 1
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  return streak
 }
 
 export function Dashboard() {
@@ -147,7 +130,14 @@ export function Dashboard() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      {/* A labelled group: these five figures are one unit, and "Accuracy"
+          also appears as a chart label further down, so naming the region
+          keeps both humans and assistive tech from conflating them. */}
+      <div
+        role="group"
+        aria-label="Key statistics"
+        className="grid grid-cols-2 gap-4 lg:grid-cols-5"
+      >
         <KpiCard icon={BookOpen} label="Total Words" value={wordCount} />
         <KpiCard icon={MessageSquareText} label="Total Phrases" value={phraseCount} tint="info" />
         <KpiCard icon={Clock} label="Practice Time" value={`${Math.round(totalPracticeSec / 60)}m`} />

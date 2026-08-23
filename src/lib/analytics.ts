@@ -63,6 +63,32 @@ export function buildActivityHeatmapData(sessions: GameSession[], days = 91): Da
   return result
 }
 
+/**
+ * Consecutive days, ending today or yesterday, with at least one session.
+ *
+ * Yesterday is allowed as the endpoint so a streak isn't reported as broken
+ * simply because the user hasn't practised *yet* today — it only breaks once
+ * a full day has been missed. Days are compared by local-time date key, so a
+ * session at 23:50 and one at 00:10 count as two separate days, which is what
+ * a person means by "days in a row".
+ */
+export function computeDayStreak(sessions: Pick<GameSession, 'timestamp'>[]): number {
+  if (sessions.length === 0) return 0
+
+  const days = new Set(sessions.map((session) => toDateKey(session.timestamp)))
+  const cursor = new Date()
+  let streak = 0
+
+  if (!days.has(toDateKey(cursor.getTime()))) {
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  while (days.has(toDateKey(cursor.getTime()))) {
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
+}
+
 export interface TrendPoint {
   label: string
   accuracy: number
