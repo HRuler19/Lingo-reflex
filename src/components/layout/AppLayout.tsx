@@ -6,6 +6,8 @@ import { Mascot } from '@/components/Mascot'
 import { AppSidebar } from './AppSidebar'
 import { Header } from './Header'
 
+const MAIN_CONTENT_ID = 'main-content'
+
 function RouteFallback() {
   return (
     <div className="flex items-center gap-3 p-6 text-sm text-muted-foreground">
@@ -18,8 +20,30 @@ function RouteFallback() {
 export function AppLayout() {
   const { pathname } = useLocation()
 
+  function skipToContent() {
+    // tabIndex={-1} on <main> makes it programmatically focusable without
+    // adding it to the tab order.
+    document.getElementById(MAIN_CONTENT_ID)?.focus()
+  }
+
   return (
     <SidebarProvider>
+      {/*
+        Bypass block (WCAG 2.4.1). Without it every page starts with the six
+        sidebar links and three header controls, so a keyboard user tabs
+        through nine stops before reaching the page — on every single page.
+
+        A button rather than the conventional `<a href="#main">`: the app uses
+        HashRouter, so a fragment link would be read as a route change and
+        navigate instead of scrolling. Visually hidden until focused.
+      */}
+      <button
+        type="button"
+        onClick={skipToContent}
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-100 focus:rounded-lg focus:border-2 focus:border-primary focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:font-medium"
+      >
+        Skip to main content
+      </button>
       <AppSidebar />
       <SidebarInset>
         <Header />
@@ -54,7 +78,10 @@ export function AppLayout() {
           landscape on a notched device. Not handling that narrower case
           for now rather than complicating the sticky-header math for it.
         */}
-        <main className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <main
+          id={MAIN_CONTENT_ID}
+          tabIndex={-1}
+          className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           {/*
             A faint, fixed ambient wash behind every page — so a page whose
             content is deliberately narrow (the Practice Arena game screen

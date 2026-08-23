@@ -30,3 +30,20 @@ if (!('ResizeObserver' in globalThis)) {
   }
   globalThis.ResizeObserver = ResizeObserverStub
 }
+
+// jsdom implements no media queries, and useIsMobile asks for one to decide
+// between the sidebar rail and the mobile drawer. Report "not mobile", which
+// is the desktop layout these tests assert against.
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList
+}

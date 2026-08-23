@@ -12,7 +12,7 @@ speed are moving. No account, no backend, no network. Your data never leaves
 your device.
 
 [![CI](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml/badge.svg)](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml)
-&nbsp;![Tests](https://img.shields.io/badge/tests-120%20passing-brightgreen)
+&nbsp;![Tests](https://img.shields.io/badge/tests-124%20passing-brightgreen)
 &nbsp;![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
 &nbsp;![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -98,7 +98,7 @@ xattr -dr com.apple.quarantine /Applications/LexiPulse.app
 | 💾 **Real data portability** | Full JSON backup, or CSV for moving vocabulary in and out of spreadsheets. Imports merge instead of duplicating. |
 | 📴 **Offline-first** | IndexedDB + service worker. No network is ever required, on any platform. |
 | 🌗 **Light & dark** | Both fully designed, not an auto-inverted afterthought. |
-| ♿ **Accessible** | Keyboard-operable, labelled controls, and every chart ships a screen-reader data table. |
+| ♿ **Accessible** | Zero axe violations in both themes, a skip link, full keyboard operation with trapped dialog focus, and a screen-reader data table behind every chart. |
 
 ---
 
@@ -295,7 +295,7 @@ correctly. See `lib/backup.ts`.
 
 ### Testing
 
-120 tests across 14 files. Beyond the pure logic — date bucketing and streaks,
+124 tests across 15 files. Beyond the pure logic — date bucketing and streaks,
 practice pool construction, answer matching, CSV round-tripping including
 formula injection and delimiter escaping, the session game loop, and chart
 tick/curve maths — the page-level tests drive the real Dexie schema against an
