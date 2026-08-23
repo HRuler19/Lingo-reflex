@@ -62,6 +62,80 @@ describe('buildPracticePool', () => {
   })
 })
 
+describe('buildPracticePool with a recent-entries limit', () => {
+  /** Words numbered oldest (w0) to newest, one day apart. */
+  const timeline = Array.from({ length: 10 }, (_, i) => ({
+    ...word,
+    id: `w${i}`,
+    term: `term${i}`,
+    createdAt: i * 86_400_000,
+  }))
+
+  it('draws only from the newest N entries', () => {
+    const pool = buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', 3)
+    expect(pool.map((item) => item.prompt).sort()).toEqual(['term7', 'term8', 'term9'])
+  })
+
+  it('takes everything when the limit exceeds the library', () => {
+    // Asking for more than exists is a normal thing to do, not an error.
+    const pool = buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', 500)
+    expect(pool).toHaveLength(10)
+  })
+
+  it('takes everything when there is no limit', () => {
+    expect(buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', null)).toHaveLength(10)
+  })
+
+  it('ranks words and phrases on one timeline', () => {
+    // "The last 2 things I added" spans both tables, so a recent phrase
+    // outranks an older word rather than each being trimmed separately.
+    const oldWord = { ...word, id: 'w_old', term: 'old', createdAt: 1 }
+    const newPhrase = { ...phrase, id: 'p_new', phrase: 'new phrase', createdAt: 100 }
+    const newWord = { ...word, id: 'w_new', term: 'new', createdAt: 99 }
+
+    const pool = buildPracticePool(
+      [oldWord, newWord],
+      [newPhrase],
+      'HYBRID',
+      'SOURCE_TO_TARGET',
+      2,
+    )
+    expect(pool.map((item) => item.prompt).sort()).toEqual(['new', 'new phrase'])
+  })
+
+  it('applies the limit after the game type filter', () => {
+    // Words Only + "last 2" means the last 2 words, not the words left over
+    // from the last 2 entries overall.
+    const phrases = Array.from({ length: 5 }, (_, i) => ({
+      ...phrase,
+      id: `p${i}`,
+      phrase: `phrase${i}`,
+      // Newer than every word, so they would swallow an unfiltered limit.
+      createdAt: 999_000_000 + i,
+    }))
+
+    const pool = buildPracticePool(timeline, phrases, 'WORDS_ONLY', 'SOURCE_TO_TARGET', 2)
+    expect(pool.map((item) => item.prompt).sort()).toEqual(['term8', 'term9'])
+  })
+
+  it('breaks ties on id so a session does not depend on input order', () => {
+    const sameInstant = [
+      { ...word, id: 'w_b', term: 'b', createdAt: 5 },
+      { ...word, id: 'w_a', term: 'a', createdAt: 5 },
+      { ...word, id: 'w_c', term: 'c', createdAt: 5 },
+    ]
+    const forwards = buildPracticePool(sameInstant, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', 2)
+    const backwards = buildPracticePool(
+      [...sameInstant].reverse(),
+      [],
+      'WORDS_ONLY',
+      'SOURCE_TO_TARGET',
+      2,
+    )
+    expect(forwards.map((i) => i.id)).toEqual(backwards.map((i) => i.id))
+  })
+})
+
 describe('isCorrectAnswer', () => {
   it('matches case-insensitively and ignores surrounding whitespace', () => {
     expect(isCorrectAnswer('  YadawSYZ  ', ['Yadawsyz'])).toBe(true)

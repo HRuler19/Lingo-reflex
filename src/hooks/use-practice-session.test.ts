@@ -15,7 +15,13 @@ function setup() {
   return renderHook(() =>
     usePracticeSession({
       pool: [onlyItem],
-      config: { mode: 'WORDS_ONLY', direction: 'SOURCE_TO_TARGET', totalDurationSec: 300, timePerItemSec: 10 },
+      config: {
+        mode: 'WORDS_ONLY',
+        direction: 'SOURCE_TO_TARGET',
+        totalDurationSec: 300,
+        timePerItemSec: 10,
+        recentLimit: null,
+      },
       onFinish: vi.fn(),
     }),
   )
@@ -93,6 +99,7 @@ describe('usePracticeSession', () => {
           direction: 'SOURCE_TO_TARGET',
           totalDurationSec: 5,
           timePerItemSec: 10,
+          recentLimit: null,
         },
         onFinish,
       }),
@@ -119,6 +126,7 @@ describe('usePracticeSession', () => {
           direction: 'SOURCE_TO_TARGET',
           totalDurationSec: 300,
           timePerItemSec: 10,
+          recentLimit: null,
         },
         onFinish,
       }),

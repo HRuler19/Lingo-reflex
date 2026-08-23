@@ -68,26 +68,80 @@ function toPracticeItem(
   return { id, kind, prompt, answers: [source] }
 }
 
-/** Builds the pool of practice items for a session, respecting the selected game mode. */
+/** A word or phrase flattened into the shape the pool builder works with. */
+interface PoolCandidate {
+  id: string
+  kind: 'word' | 'phrase'
+  source: string
+  translations: string[]
+  createdAt: number
+}
+
+/**
+ * Keeps the `limit` most recently added candidates.
+ *
+ * Words and phrases compete on one timeline rather than being trimmed
+ * separately — "the last 20 things I added" is what the count means, so in
+ * Hybrid mode a burst of new phrases can legitimately crowd out older words.
+ * Ties break on id so a session's contents never depend on input order.
+ */
+function takeMostRecent(candidates: PoolCandidate[], limit: number): PoolCandidate[] {
+  return [...candidates]
+    .sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id))
+    .slice(0, limit)
+}
+
+/**
+ * Builds the pool of practice items for a session.
+ *
+ * `recentLimit` narrows the pool to the newest N entries, or draws from the
+ * whole library when null. It applies *after* the game mode filter, so asking
+ * for the last 20 in Words Only means the last 20 words rather than whatever
+ * words survive the last 20 entries overall. A limit larger than the library
+ * is not an error — it simply selects everything.
+ */
 export function buildPracticePool(
   words: Word[],
   phrases: Phrase[],
   mode: GameMode,
   direction: GameDirection,
+  recentLimit: number | null = null,
 ): PracticeItem[] {
-  const items: PracticeItem[] = []
+  const candidates: PoolCandidate[] = []
 
   if (mode !== 'PHRASES_ONLY') {
     for (const word of words) {
-      items.push(toPracticeItem(word.id, 'word', word.term, word.translations, direction))
+      candidates.push({
+        id: word.id,
+        kind: 'word',
+        source: word.term,
+        translations: word.translations,
+        createdAt: word.createdAt,
+      })
     }
   }
   if (mode !== 'WORDS_ONLY') {
     for (const phrase of phrases) {
-      items.push(toPracticeItem(phrase.id, 'phrase', phrase.phrase, phrase.translations, direction))
+      candidates.push({
+        id: phrase.id,
+        kind: 'phrase',
+        source: phrase.phrase,
+        translations: phrase.translations,
+        createdAt: phrase.createdAt,
+      })
     }
   }
-  return items
+
+  const selected = recentLimit === null ? candidates : takeMostRecent(candidates, recentLimit)
+  return selected.map((candidate) =>
+    toPracticeItem(
+      candidate.id,
+      candidate.kind,
+      candidate.source,
+      candidate.translations,
+      direction,
+    ),
+  )
 }
 
 export function normalizeAnswer(value: string): string {

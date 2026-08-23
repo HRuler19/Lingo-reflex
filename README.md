@@ -12,7 +12,7 @@ speed are moving. No account, no backend, no network. Your data never leaves
 your device.
 
 [![CI](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml/badge.svg)](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml)
-&nbsp;![Tests](https://img.shields.io/badge/tests-130%20passing-brightgreen)
+&nbsp;![Tests](https://img.shields.io/badge/tests-138%20passing-brightgreen)
 &nbsp;![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
 &nbsp;![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -92,6 +92,7 @@ xattr -dr com.apple.quarantine /Applications/LexiPulse.app
 |---|---|
 | ⌨️ **Type-to-answer practice** | Recall, not recognition. Session timer plus a per-item countdown; wrong answers shake and let you retry until the clock runs out. |
 | 🔀 **Six practice modes** | Words only, phrases only, or hybrid — each in source→target, target→source, or **mixed**, which randomises direction per item. |
+| 🎯 **Drill what's new** | Scope a session to the *N* most recently added entries — you choose N. In a 500-word library a word added today would otherwise come up about 4% of the time. |
 | 📊 **Honest analytics** | Accuracy and response-time trends per session, a 13-week activity heatmap with streaks, and words-vs-phrases mastery. |
 | 🌍 **Any language pair** | Not hardcoded to one language. Add as many pairs as you like; everything is scoped per pair. |
 | 📚 **Searchable library** | Every word and phrase, with multiple accepted translations each, editable inline. |
@@ -295,7 +296,7 @@ correctly. See `lib/backup.ts`.
 
 ### Testing
 
-130 tests across 15 files. Beyond the pure logic — date bucketing and streaks,
+138 tests across 15 files. Beyond the pure logic — date bucketing and streaks,
 practice pool construction, answer matching, CSV round-tripping including
 formula injection and delimiter escaping, the session game loop, and chart
 tick/curve maths — the page-level tests drive the real Dexie schema against an

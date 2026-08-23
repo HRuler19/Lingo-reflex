@@ -75,7 +75,13 @@ export function PracticeArena() {
   }, [selectedPairId])
 
   function handleStart(cfg: PracticeConfig) {
-    const builtPool = buildPracticePool(words ?? [], phrases ?? [], cfg.mode, cfg.direction)
+    const builtPool = buildPracticePool(
+      words ?? [],
+      phrases ?? [],
+      cfg.mode,
+      cfg.direction,
+      cfg.recentLimit,
+    )
     if (builtPool.length === 0) {
       setError('Add some words or phrases for this game type before starting.')
       return
@@ -158,7 +164,13 @@ export function PracticeArena() {
       )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,28rem)_1fr]">
-        <PreGameConfig disabled={!selectedPairId} error={error} onStart={handleStart} />
+        <PreGameConfig
+          disabled={!selectedPairId}
+          error={error}
+          wordCount={words?.length ?? 0}
+          phraseCount={phrases?.length ?? 0}
+          onStart={handleStart}
+        />
 
         <Card className="h-fit">
           <CardHeader className="flex flex-row items-center gap-3 space-y-0">

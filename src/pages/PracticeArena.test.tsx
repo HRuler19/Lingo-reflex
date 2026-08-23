@@ -139,6 +139,62 @@ describe('PracticeArena', () => {
     expect(await screen.findByText(/pre-game configuration/i)).toBeTruthy()
   })
 
+  it('practises only the most recently added entries when scoped to a count', async () => {
+    // The point of the scope: in a large library a word added today is
+    // otherwise drowned out. Seed old entries plus two new ones and check
+    // that a session scoped to 2 can only ever show the new ones.
+    const pairId = await seedPair()
+    for (let i = 0; i < 8; i++) {
+      await seedWord(pairId, `old${i}`, [`köne${i}`])
+      await db.words.update(`w_old${i}`, { createdAt: 1_000 + i })
+    }
+    await seedWord(pairId, 'Newest', ['Iň täze'])
+    await db.words.update('w_Newest', { createdAt: 9_000_000 })
+    await seedWord(pairId, 'Newer', ['Täze'])
+    await db.words.update('w_Newer', { createdAt: 8_000_000 })
+
+    const user = userEvent.setup()
+    renderWithRouter(<PracticeArena />)
+    await waitFor(() => expect(screen.getByText('10')).toBeTruthy())
+
+    await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
+    await user.click(await screen.findByRole('option', { name: /most recently added/i }))
+
+    const count = await screen.findByRole('spinbutton', { name: /how many recent entries/i })
+    await user.clear(count)
+    await user.type(count, '2')
+
+    await user.click(screen.getByRole('button', { name: /start session/i }))
+
+    // Answer correctly to advance — a wrong answer deliberately re-asks the
+    // same item — and collect everything the session put in front of us.
+    const answers = { Newest: 'Iň täze', Newer: 'Täze' }
+    const asked = new Set<string>()
+    for (let turn = 0; turn < 6; turn++) {
+      asked.add(await answerCurrentPrompt(user, answers))
+    }
+    await user.keyboard('{Escape}')
+
+    expect([...asked].sort()).toEqual(['Newer', 'Newest'])
+  })
+
+  it('refuses to start on a scope count that is not a positive number', async () => {
+    const pairId = await seedPair()
+    await seedWord(pairId, 'Water', ['Suw'])
+
+    const user = userEvent.setup()
+    renderWithRouter(<PracticeArena />)
+
+    await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
+    await user.click(await screen.findByRole('option', { name: /most recently added/i }))
+    await user.clear(await screen.findByRole('spinbutton', { name: /how many recent entries/i }))
+
+    expect(screen.getByRole('button', { name: /start session/i }).hasAttribute('disabled')).toBe(
+      true,
+    )
+    expect(await screen.findByText(/1 or more/i)).toBeTruthy()
+  })
+
   it('tells the user when the session could not be saved', async () => {
     // A silent failure here would throw away a completed session.
     const pairId = await seedPair()

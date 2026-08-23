@@ -10,6 +10,7 @@ import {
 } from '@/lib/practice'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -22,8 +23,20 @@ import {
 interface PreGameConfigProps {
   disabled: boolean
   error: string | null
+  wordCount: number
+  phraseCount: number
   onStart: (config: PracticeConfig) => void
 }
+
+type Scope = 'ALL' | 'RECENT'
+
+const SCOPE_OPTIONS: { label: string; value: Scope }[] = [
+  { label: 'Entire library', value: 'ALL' },
+  { label: 'Most recently added', value: 'RECENT' },
+]
+
+/** Starting point for the count — small enough to be a focused drill. */
+const DEFAULT_RECENT_LIMIT = 20
 
 // Base UI's <Select.Value> renders the raw value by default; look up the
 // human label for these enum/seconds values instead of showing e.g. "HYBRID".
@@ -32,11 +45,37 @@ function labelFor(options: readonly { label: string; value?: string; seconds?: n
     options.find((opt) => (opt.value ?? String(opt.seconds)) === value)?.label ?? value
 }
 
-export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) {
+export function PreGameConfig({
+  disabled,
+  error,
+  wordCount,
+  phraseCount,
+  onStart,
+}: PreGameConfigProps) {
   const [mode, setMode] = useState<GameMode>('HYBRID')
   const [direction, setDirection] = useState<GameDirection>('SOURCE_TO_TARGET')
   const [durationSec, setDurationSec] = useState<number>(DURATION_OPTIONS[1].seconds)
   const [perItemSec, setPerItemSec] = useState<number>(PER_ITEM_OPTIONS[1].seconds)
+  const [scope, setScope] = useState<Scope>('ALL')
+  // Held as text, not a number: clearing the field mid-edit has to be allowed,
+  // and an empty box is not the number zero.
+  const [recentText, setRecentText] = useState(String(DEFAULT_RECENT_LIMIT))
+
+  const available =
+    mode === 'WORDS_ONLY' ? wordCount : mode === 'PHRASES_ONLY' ? phraseCount : wordCount + phraseCount
+  const parsedLimit = Number.parseInt(recentText, 10)
+  const limitIsValid = Number.isInteger(parsedLimit) && parsedLimit > 0
+  const recentLimit = scope === 'RECENT' && limitIsValid ? parsedLimit : null
+
+  const entries = `${available} ${available === 1 ? 'entry' : 'entries'}`
+  const scopeHint =
+    scope === 'ALL'
+      ? `Every one of your ${entries} can come up.`
+      : !limitIsValid
+        ? 'Enter how many recent entries to practise — 1 or more.'
+        : parsedLimit >= available
+          ? `You have ${entries} in total, so this practises all of them.`
+          : `Only the ${parsedLimit} newest of your ${entries}.`
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -45,6 +84,7 @@ export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) 
       direction,
       totalDurationSec: durationSec,
       timePerItemSec: perItemSec,
+      recentLimit,
     })
   }
 
@@ -119,6 +159,40 @@ export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) 
                 </SelectContent>
               </Select>
             </div>
+            <div className="col-span-2 flex flex-col gap-2">
+              <Label htmlFor="recent-limit">Practice Scope</Label>
+              <div className="flex gap-3">
+                <Select value={scope} onValueChange={(v) => setScope(v as Scope)}>
+                  <SelectTrigger className="flex-1" aria-label="Practice Scope">
+                    <SelectValue>{labelFor(SCOPE_OPTIONS)}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SCOPE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {scope === 'RECENT' && (
+                  <Input
+                    id="recent-limit"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    step={1}
+                    className="w-24 tabular-nums"
+                    value={recentText}
+                    onChange={(e) => setRecentText(e.target.value)}
+                    aria-label="How many recent entries"
+                    aria-invalid={!limitIsValid}
+                  />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {scopeHint}
+              </p>
+            </div>
           </div>
 
           {error && (
@@ -128,7 +202,12 @@ export function PreGameConfig({ disabled, error, onStart }: PreGameConfigProps) 
             </div>
           )}
 
-          <Button type="submit" size="lg" disabled={disabled} className="mt-1">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={disabled || (scope === 'RECENT' && !limitIsValid)}
+            className="mt-1"
+          >
             Start Session
           </Button>
         </form>

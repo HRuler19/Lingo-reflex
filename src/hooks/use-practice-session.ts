@@ -7,6 +7,12 @@ export interface PracticeConfig {
   direction: GameDirection
   totalDurationSec: number
   timePerItemSec: number
+  /**
+   * Draw only from the N most recently added entries, or null for the whole
+   * library. Like `mode` and `direction` this shapes the pool rather than the
+   * running session, so the session hook itself never reads it.
+   */
+  recentLimit: number | null
 }
 
 export interface ItemOutcome {
