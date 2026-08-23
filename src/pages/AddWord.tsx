@@ -4,6 +4,7 @@ import { AlertTriangle, Info, PlusCircle } from 'lucide-react'
 import { db, newId, type Word } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { runDbAction } from '@/store/toast-store'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { PageHeader } from '@/components/PageHeader'
 import { RecentlyAddedPanel } from '@/components/RecentlyAddedPanel'
 import { Mascot } from '@/components/Mascot'
@@ -20,10 +21,16 @@ export function AddWord() {
   const [term, setTerm] = useState('')
   const [translation, setTranslation] = useState('')
 
+  // Debounced: this is an indexed lookup per keystroke otherwise, and the
+  // answer is only shown once the user pauses anyway.
+  const debouncedTerm = useDebouncedValue(term)
   const existing: Word | undefined = useLiveQuery(async () => {
-    if (!selectedPairId || !term.trim()) return undefined
-    return db.words.where('[pairId+term]').equals([selectedPairId, term.trim()]).first()
-  }, [selectedPairId, term])
+    if (!selectedPairId || !debouncedTerm.trim()) return undefined
+    return db.words
+      .where('[pairId+term]')
+      .equals([selectedPairId, debouncedTerm.trim()])
+      .first()
+  }, [selectedPairId, debouncedTerm])
 
   const recentWords = useLiveQuery(async () => {
     if (!selectedPairId) return []
@@ -39,21 +46,35 @@ export function AddWord() {
     e.preventDefault()
     if (!selectedPairId || !term.trim() || !translation.trim()) return
 
+    const trimmedTerm = term.trim()
+    const trimmedTranslation = translation.trim()
+
     const saved = await runDbAction(
-      () =>
-        existing
-          ? db.words.update(existing.id, {
-              translations: Array.from(new Set([...existing.translations, translation.trim()])),
-            })
-          : db.words.add({
-              id: newId('w'),
-              pairId: selectedPairId,
-              term: term.trim(),
-              translations: [translation.trim()],
-              createdAt: Date.now(),
-              stats: { correct: 0, wrong: 0 },
-            }),
-      { errorMessage: `Could not save "${term.trim()}".` },
+      async () => {
+        // Re-read rather than trusting the `existing` shown above: that query
+        // is debounced, so submitting straight after typing can race ahead of
+        // it and would otherwise insert a duplicate row.
+        const current = await db.words
+          .where('[pairId+term]')
+          .equals([selectedPairId, trimmedTerm])
+          .first()
+
+        if (current) {
+          await db.words.update(current.id, {
+            translations: Array.from(new Set([...current.translations, trimmedTranslation])),
+          })
+        } else {
+          await db.words.add({
+            id: newId('w'),
+            pairId: selectedPairId,
+            term: trimmedTerm,
+            translations: [trimmedTranslation],
+            createdAt: Date.now(),
+            stats: { correct: 0, wrong: 0 },
+          })
+        }
+      },
+      { errorMessage: `Could not save "${trimmedTerm}".` },
     )
 
     // Only clear the form once the write actually committed, so a failure

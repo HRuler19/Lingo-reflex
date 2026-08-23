@@ -16,5 +16,13 @@ export default defineConfig({
     // per-file with a `// @vitest-environment jsdom` docblock.
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}'],
+    setupFiles: ['src/test/setup.ts'],
+    // Undo vi.spyOn between tests. Without this a spy installed to simulate a
+    // failed write stays attached and leaks into whatever runs next, which
+    // shows up as order-dependent flakiness rather than an obvious error.
+    restoreMocks: true,
+    // Component tests drive a real Dexie schema over fake-indexeddb, which is
+    // slower than the 5s default once several live queries are settling.
+    testTimeout: 15000,
   },
 })
