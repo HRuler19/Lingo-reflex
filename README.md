@@ -12,7 +12,7 @@ speed are moving. No account, no backend, no network. Your data never leaves
 your device.
 
 [![CI](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml/badge.svg)](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml)
-&nbsp;![Tests](https://img.shields.io/badge/tests-60%20passing-brightgreen)
+&nbsp;![Tests](https://img.shields.io/badge/tests-101%20passing-brightgreen)
 &nbsp;![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
 &nbsp;![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -295,10 +295,12 @@ correctly. See `lib/backup.ts`.
 
 ### Testing
 
-60 tests across 7 files, covering the parts where a bug would be silent: date
-bucketing and streak logic, practice pool construction, answer matching, CSV
-round-tripping (including injection and escaping), the session game loop, chart
-tick/curve math, and the error boundary.
+101 tests across 12 files. Beyond the pure logic — date bucketing and streaks,
+practice pool construction, answer matching, CSV round-tripping including
+formula injection and delimiter escaping, the session game loop, and chart
+tick/curve maths — the page-level tests drive the real Dexie schema against an
+in-memory IndexedDB rather than mocking the database, so they exercise the
+actual compound-index lookups and transactions.
 
 ```bash
 npm run test
