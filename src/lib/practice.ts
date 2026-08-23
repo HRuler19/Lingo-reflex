@@ -1,4 +1,4 @@
-import type { GameDirection, GameMode, Phrase, Word } from '@/db/schema'
+import type { GameDirection, GameMode, ItemStats, Phrase, Word } from '@/db/schema'
 
 export interface PracticeItem {
   id: string
@@ -75,6 +75,43 @@ interface PoolCandidate {
   source: string
   translations: string[]
   createdAt: number
+  stats: ItemStats
+}
+
+export type PoolScope = 'ALL' | 'RECENT' | 'STRUGGLING'
+
+export const SCOPE_OPTIONS: { label: string; value: PoolScope }[] = [
+  { label: 'Entire library', value: 'ALL' },
+  { label: 'Most recently added', value: 'RECENT' },
+  { label: 'Most often wrong', value: 'STRUGGLING' },
+]
+
+export interface PoolSelection {
+  scope: PoolScope
+  /** How many entries to keep. Ignored when the scope is the whole library. */
+  limit: number
+}
+
+export const WHOLE_LIBRARY: PoolSelection = { scope: 'ALL', limit: 0 }
+
+/** True once an entry has been answered wrong at least once. */
+function hasMistakes(stats: ItemStats): boolean {
+  return stats.wrong > 0
+}
+
+/**
+ * How many entries the "most often wrong" scope has to work with.
+ *
+ * Exposed so the configuration screen can say up front whether the scope has
+ * anything to offer, rather than letting the user start and find out.
+ */
+export function countWithMistakes(words: Word[], phrases: Phrase[], mode: GameMode): number {
+  const words_ = mode === 'PHRASES_ONLY' ? [] : words
+  const phrases_ = mode === 'WORDS_ONLY' ? [] : phrases
+  return (
+    words_.filter((w) => hasMistakes(w.stats)).length +
+    phrases_.filter((p) => hasMistakes(p.stats)).length
+  )
 }
 
 /**
@@ -91,21 +128,52 @@ function takeMostRecent(candidates: PoolCandidate[], limit: number): PoolCandida
     .slice(0, limit)
 }
 
+/** Share of attempts answered wrong, for entries that have been attempted. */
+function wrongRate(stats: ItemStats): number {
+  const attempts = stats.correct + stats.wrong
+  return attempts === 0 ? 0 : stats.wrong / attempts
+}
+
+/**
+ * Keeps the `limit` entries answered wrong most often.
+ *
+ * Ranked by the share of attempts missed rather than the raw miss count, so
+ * an entry missed 3 of 3 times outranks one missed 5 of 50 — the second is
+ * mostly known. Among equal rates the more-attempted entry wins, since it is
+ * the better-evidenced weakness.
+ *
+ * Entries with a clean record are excluded outright: an entry never answered
+ * wrong is not a weakness, and one never practised at all is unknown rather
+ * than weak. That means the scope can legitimately come back empty.
+ */
+function takeWeakest(candidates: PoolCandidate[], limit: number): PoolCandidate[] {
+  return candidates
+    .filter((candidate) => hasMistakes(candidate.stats))
+    .sort(
+      (a, b) =>
+        wrongRate(b.stats) - wrongRate(a.stats) ||
+        b.stats.wrong - a.stats.wrong ||
+        a.id.localeCompare(b.id),
+    )
+    .slice(0, limit)
+}
+
 /**
  * Builds the pool of practice items for a session.
  *
- * `recentLimit` narrows the pool to the newest N entries, or draws from the
- * whole library when null. It applies *after* the game mode filter, so asking
- * for the last 20 in Words Only means the last 20 words rather than whatever
- * words survive the last 20 entries overall. A limit larger than the library
- * is not an error — it simply selects everything.
+ * `selection` narrows the pool to the newest N entries or the N answered
+ * wrong most often, or draws from the whole library. It applies *after* the
+ * game mode filter, so asking for the last 20 in Words Only means the last 20
+ * words rather than whatever words survive the last 20 entries overall. A
+ * limit larger than the library is not an error — it simply selects
+ * everything.
  */
 export function buildPracticePool(
   words: Word[],
   phrases: Phrase[],
   mode: GameMode,
   direction: GameDirection,
-  recentLimit: number | null = null,
+  selection: PoolSelection = WHOLE_LIBRARY,
 ): PracticeItem[] {
   const candidates: PoolCandidate[] = []
 
@@ -117,6 +185,7 @@ export function buildPracticePool(
         source: word.term,
         translations: word.translations,
         createdAt: word.createdAt,
+        stats: word.stats,
       })
     }
   }
@@ -128,11 +197,17 @@ export function buildPracticePool(
         source: phrase.phrase,
         translations: phrase.translations,
         createdAt: phrase.createdAt,
+        stats: phrase.stats,
       })
     }
   }
 
-  const selected = recentLimit === null ? candidates : takeMostRecent(candidates, recentLimit)
+  const selected =
+    selection.scope === 'RECENT'
+      ? takeMostRecent(candidates, selection.limit)
+      : selection.scope === 'STRUGGLING'
+        ? takeWeakest(candidates, selection.limit)
+        : candidates
   return selected.map((candidate) =>
     toPracticeItem(
       candidate.id,

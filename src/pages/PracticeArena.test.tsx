@@ -160,7 +160,7 @@ describe('PracticeArena', () => {
     await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
     await user.click(await screen.findByRole('option', { name: /most recently added/i }))
 
-    const count = await screen.findByRole('spinbutton', { name: /how many recent entries/i })
+    const count = await screen.findByRole('spinbutton', { name: /how many entries/i })
     await user.clear(count)
     await user.type(count, '2')
 
@@ -187,12 +187,83 @@ describe('PracticeArena', () => {
 
     await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
     await user.click(await screen.findByRole('option', { name: /most recently added/i }))
-    await user.clear(await screen.findByRole('spinbutton', { name: /how many recent entries/i }))
+    await user.clear(await screen.findByRole('spinbutton', { name: /how many entries/i }))
 
     expect(screen.getByRole('button', { name: /start session/i }).hasAttribute('disabled')).toBe(
       true,
     )
     expect(await screen.findByText(/1 or more/i)).toBeTruthy()
+  })
+
+  it('practises only the entries with a miss on record when scoped to weakness', async () => {
+    const pairId = await seedPair()
+    await seedWord(pairId, 'Missed', ['Ýalňyş'])
+    await db.words.update('w_Missed', { stats: { correct: 0, wrong: 4 } })
+    await seedWord(pairId, 'Known', ['Bilýän'])
+    await db.words.update('w_Known', { stats: { correct: 9, wrong: 0 } })
+    await seedWord(pairId, 'Untouched', ['Degilmedik'])
+
+    const user = userEvent.setup()
+    renderWithRouter(<PracticeArena />)
+    await waitFor(() => expect(screen.getByText('3')).toBeTruthy())
+
+    await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
+    await user.click(await screen.findByRole('option', { name: /most often wrong/i }))
+    await user.click(screen.getByRole('button', { name: /start session/i }))
+
+    const asked = new Set<string>()
+    for (let turn = 0; turn < 4; turn++) {
+      asked.add(await answerCurrentPrompt(user, { Missed: 'Ýalňyş' }))
+    }
+    await user.keyboard('{Escape}')
+
+    // A perfect record and an untouched entry are both out of scope.
+    expect([...asked]).toEqual(['Missed'])
+  })
+
+  it('blocks the weakness scope while nothing has been missed yet', async () => {
+    // Every entry has a clean record, so the scope could only ever produce an
+    // empty session — say so at the control instead of failing at Start.
+    const pairId = await seedPair()
+    await seedWord(pairId, 'Water', ['Suw'])
+
+    const user = userEvent.setup()
+    renderWithRouter(<PracticeArena />)
+
+    await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
+    await user.click(await screen.findByRole('option', { name: /most often wrong/i }))
+
+    expect(await screen.findByText(/nothing to drill yet/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /start session/i }).hasAttribute('disabled')).toBe(
+      true,
+    )
+  })
+
+  it('reports how much the weakness scope has to work with', async () => {
+    // Misses accumulate through applyOutcomesToStats, which the session test
+    // above covers; here they are seeded so the scope's own reporting can be
+    // checked without waiting out a real per-item countdown.
+    const pairId = await seedPair()
+    await seedWord(pairId, 'Missed', ['Ýalňyş'])
+    await db.words.update('w_Missed', { stats: { correct: 1, wrong: 2 } })
+    await seedWord(pairId, 'AlsoMissed', ['Hem ýalňyş'])
+    await db.words.update('w_AlsoMissed', { stats: { correct: 0, wrong: 1 } })
+    await seedWord(pairId, 'Known', ['Bilýän'])
+    await db.words.update('w_Known', { stats: { correct: 5, wrong: 0 } })
+
+    const user = userEvent.setup()
+    renderWithRouter(<PracticeArena />)
+    await waitFor(() => expect(screen.getByText('3')).toBeTruthy())
+
+    await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
+    await user.click(await screen.findByRole('option', { name: /most often wrong/i }))
+
+    // The default count of 20 covers both, so the hint says so rather than
+    // implying a trim, and counts only the two with misses.
+    expect(await screen.findByText(/all 2 entries you have answered wrong so far/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /start session/i }).hasAttribute('disabled')).toBe(
+      false,
+    )
   })
 
   it('tells the user when the session could not be saved', async () => {

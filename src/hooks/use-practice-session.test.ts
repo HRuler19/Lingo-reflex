@@ -2,7 +2,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { usePracticeSession } from './use-practice-session'
-import type { PracticeItem } from '@/lib/practice'
+import { WHOLE_LIBRARY, type PracticeItem } from '@/lib/practice'
 
 const onlyItem: PracticeItem = {
   id: 'w1',
@@ -20,7 +20,7 @@ function setup() {
         direction: 'SOURCE_TO_TARGET',
         totalDurationSec: 300,
         timePerItemSec: 10,
-        recentLimit: null,
+        selection: WHOLE_LIBRARY,
       },
       onFinish: vi.fn(),
     }),
@@ -99,7 +99,7 @@ describe('usePracticeSession', () => {
           direction: 'SOURCE_TO_TARGET',
           totalDurationSec: 5,
           timePerItemSec: 10,
-          recentLimit: null,
+          selection: WHOLE_LIBRARY,
         },
         onFinish,
       }),
@@ -126,7 +126,7 @@ describe('usePracticeSession', () => {
           direction: 'SOURCE_TO_TARGET',
           totalDurationSec: 300,
           timePerItemSec: 10,
-          recentLimit: null,
+          selection: WHOLE_LIBRARY,
         },
         onFinish,
       }),

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { GameDirection, GameMode } from '@/db/schema'
-import { type PracticeItem, isCorrectAnswer, shuffle } from '@/lib/practice'
+import { type PoolSelection, type PracticeItem, isCorrectAnswer, shuffle } from '@/lib/practice'
 
 export interface PracticeConfig {
   mode: GameMode
@@ -8,11 +8,11 @@ export interface PracticeConfig {
   totalDurationSec: number
   timePerItemSec: number
   /**
-   * Draw only from the N most recently added entries, or null for the whole
-   * library. Like `mode` and `direction` this shapes the pool rather than the
-   * running session, so the session hook itself never reads it.
+   * Which slice of the library to draw from. Like `mode` and `direction` this
+   * shapes the pool rather than the running session, so the session hook
+   * itself never reads it.
    */
-  recentLimit: number | null
+  selection: PoolSelection
 }
 
 export interface ItemOutcome {

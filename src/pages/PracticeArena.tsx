@@ -80,7 +80,7 @@ export function PracticeArena() {
       phrases ?? [],
       cfg.mode,
       cfg.direction,
-      cfg.recentLimit,
+      cfg.selection,
     )
     if (builtPool.length === 0) {
       setError('Add some words or phrases for this game type before starting.')
@@ -167,8 +167,8 @@ export function PracticeArena() {
         <PreGameConfig
           disabled={!selectedPairId}
           error={error}
-          wordCount={words?.length ?? 0}
-          phraseCount={phrases?.length ?? 0}
+          words={words ?? []}
+          phrases={phrases ?? []}
           onStart={handleStart}
         />
 

@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import type { GameDirection, GameMode } from '@/db/schema'
+import type { GameDirection, GameMode, Phrase, Word } from '@/db/schema'
 import type { PracticeConfig } from '@/hooks/use-practice-session'
 import {
   DIRECTION_OPTIONS,
   DURATION_OPTIONS,
   GAME_MODE_OPTIONS,
   PER_ITEM_OPTIONS,
+  SCOPE_OPTIONS,
+  WHOLE_LIBRARY,
+  countWithMistakes,
+  type PoolScope,
 } from '@/lib/practice'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,20 +27,13 @@ import {
 interface PreGameConfigProps {
   disabled: boolean
   error: string | null
-  wordCount: number
-  phraseCount: number
+  words: Word[]
+  phrases: Phrase[]
   onStart: (config: PracticeConfig) => void
 }
 
-type Scope = 'ALL' | 'RECENT'
-
-const SCOPE_OPTIONS: { label: string; value: Scope }[] = [
-  { label: 'Entire library', value: 'ALL' },
-  { label: 'Most recently added', value: 'RECENT' },
-]
-
 /** Starting point for the count — small enough to be a focused drill. */
-const DEFAULT_RECENT_LIMIT = 20
+const DEFAULT_LIMIT = 20
 
 // Base UI's <Select.Value> renders the raw value by default; look up the
 // human label for these enum/seconds values instead of showing e.g. "HYBRID".
@@ -45,37 +42,47 @@ function labelFor(options: readonly { label: string; value?: string; seconds?: n
     options.find((opt) => (opt.value ?? String(opt.seconds)) === value)?.label ?? value
 }
 
-export function PreGameConfig({
-  disabled,
-  error,
-  wordCount,
-  phraseCount,
-  onStart,
-}: PreGameConfigProps) {
+/** Pluralises a count of library entries for the hint line. */
+function entryCount(n: number): string {
+  return `${n} ${n === 1 ? 'entry' : 'entries'}`
+}
+
+export function PreGameConfig({ disabled, error, words, phrases, onStart }: PreGameConfigProps) {
   const [mode, setMode] = useState<GameMode>('HYBRID')
   const [direction, setDirection] = useState<GameDirection>('SOURCE_TO_TARGET')
   const [durationSec, setDurationSec] = useState<number>(DURATION_OPTIONS[1].seconds)
   const [perItemSec, setPerItemSec] = useState<number>(PER_ITEM_OPTIONS[1].seconds)
-  const [scope, setScope] = useState<Scope>('ALL')
+  const [scope, setScope] = useState<PoolScope>('ALL')
   // Held as text, not a number: clearing the field mid-edit has to be allowed,
   // and an empty box is not the number zero.
-  const [recentText, setRecentText] = useState(String(DEFAULT_RECENT_LIMIT))
+  const [limitText, setLimitText] = useState(String(DEFAULT_LIMIT))
 
-  const available =
-    mode === 'WORDS_ONLY' ? wordCount : mode === 'PHRASES_ONLY' ? phraseCount : wordCount + phraseCount
-  const parsedLimit = Number.parseInt(recentText, 10)
+  const wordCount = mode === 'PHRASES_ONLY' ? 0 : words.length
+  const phraseCount = mode === 'WORDS_ONLY' ? 0 : phrases.length
+  const available = wordCount + phraseCount
+  const withMistakes = countWithMistakes(words, phrases, mode)
+
+  const parsedLimit = Number.parseInt(limitText, 10)
   const limitIsValid = Number.isInteger(parsedLimit) && parsedLimit > 0
-  const recentLimit = scope === 'RECENT' && limitIsValid ? parsedLimit : null
+  const needsLimit = scope !== 'ALL'
+  // A scope that can only produce an empty pool is blocked here rather than
+  // failing at Start, so the reason sits next to the control that caused it.
+  const scopeIsEmpty = scope === 'STRUGGLING' && withMistakes === 0
 
-  const entries = `${available} ${available === 1 ? 'entry' : 'entries'}`
   const scopeHint =
     scope === 'ALL'
-      ? `Every one of your ${entries} can come up.`
+      ? `Every one of your ${entryCount(available)} can come up.`
       : !limitIsValid
-        ? 'Enter how many recent entries to practise — 1 or more.'
-        : parsedLimit >= available
-          ? `You have ${entries} in total, so this practises all of them.`
-          : `Only the ${parsedLimit} newest of your ${entries}.`
+        ? 'Enter how many entries to practise — 1 or more.'
+        : scope === 'RECENT'
+          ? parsedLimit >= available
+            ? `You have ${entryCount(available)} in total, so this practises all of them.`
+            : `Only the ${parsedLimit} newest of your ${entryCount(available)}.`
+          : withMistakes === 0
+            ? 'Nothing to drill yet — this scope uses entries you have answered wrong at least once.'
+            : parsedLimit >= withMistakes
+              ? `All ${entryCount(withMistakes)} you have answered wrong so far.`
+              : `The ${parsedLimit} you miss most often, of ${entryCount(withMistakes)} with mistakes.`
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -84,7 +91,7 @@ export function PreGameConfig({
       direction,
       totalDurationSec: durationSec,
       timePerItemSec: perItemSec,
-      recentLimit,
+      selection: needsLimit && limitIsValid ? { scope, limit: parsedLimit } : WHOLE_LIBRARY,
     })
   }
 
@@ -160,9 +167,9 @@ export function PreGameConfig({
               </Select>
             </div>
             <div className="col-span-2 flex flex-col gap-2">
-              <Label htmlFor="recent-limit">Practice Scope</Label>
+              <Label htmlFor="scope-limit">Practice Scope</Label>
               <div className="flex gap-3">
-                <Select value={scope} onValueChange={(v) => setScope(v as Scope)}>
+                <Select value={scope} onValueChange={(v) => setScope(v as PoolScope)}>
                   <SelectTrigger className="flex-1" aria-label="Practice Scope">
                     <SelectValue>{labelFor(SCOPE_OPTIONS)}</SelectValue>
                   </SelectTrigger>
@@ -174,17 +181,17 @@ export function PreGameConfig({
                     ))}
                   </SelectContent>
                 </Select>
-                {scope === 'RECENT' && (
+                {needsLimit && (
                   <Input
-                    id="recent-limit"
+                    id="scope-limit"
                     type="number"
                     inputMode="numeric"
                     min={1}
                     step={1}
                     className="w-24 tabular-nums"
-                    value={recentText}
-                    onChange={(e) => setRecentText(e.target.value)}
-                    aria-label="How many recent entries"
+                    value={limitText}
+                    onChange={(e) => setLimitText(e.target.value)}
+                    aria-label="How many entries"
                     aria-invalid={!limitIsValid}
                   />
                 )}
@@ -205,7 +212,7 @@ export function PreGameConfig({
           <Button
             type="submit"
             size="lg"
-            disabled={disabled || (scope === 'RECENT' && !limitIsValid)}
+            disabled={disabled || scopeIsEmpty || (needsLimit && !limitIsValid)}
             className="mt-1"
           >
             Start Session

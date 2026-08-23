@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buildPracticePool, isCorrectAnswer, shuffle } from './practice'
+import {
+  WHOLE_LIBRARY,
+  buildPracticePool,
+  countWithMistakes,
+  isCorrectAnswer,
+  shuffle,
+} from './practice'
 import type { Phrase, Word } from '@/db/schema'
 
 const word: Word = {
@@ -72,18 +78,18 @@ describe('buildPracticePool with a recent-entries limit', () => {
   }))
 
   it('draws only from the newest N entries', () => {
-    const pool = buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', 3)
+    const pool = buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', { scope: 'RECENT', limit: 3 })
     expect(pool.map((item) => item.prompt).sort()).toEqual(['term7', 'term8', 'term9'])
   })
 
   it('takes everything when the limit exceeds the library', () => {
     // Asking for more than exists is a normal thing to do, not an error.
-    const pool = buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', 500)
+    const pool = buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', { scope: 'RECENT', limit: 500 })
     expect(pool).toHaveLength(10)
   })
 
   it('takes everything when there is no limit', () => {
-    expect(buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', null)).toHaveLength(10)
+    expect(buildPracticePool(timeline, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', WHOLE_LIBRARY)).toHaveLength(10)
   })
 
   it('ranks words and phrases on one timeline', () => {
@@ -98,7 +104,7 @@ describe('buildPracticePool with a recent-entries limit', () => {
       [newPhrase],
       'HYBRID',
       'SOURCE_TO_TARGET',
-      2,
+      { scope: 'RECENT', limit: 2 },
     )
     expect(pool.map((item) => item.prompt).sort()).toEqual(['new', 'new phrase'])
   })
@@ -114,7 +120,7 @@ describe('buildPracticePool with a recent-entries limit', () => {
       createdAt: 999_000_000 + i,
     }))
 
-    const pool = buildPracticePool(timeline, phrases, 'WORDS_ONLY', 'SOURCE_TO_TARGET', 2)
+    const pool = buildPracticePool(timeline, phrases, 'WORDS_ONLY', 'SOURCE_TO_TARGET', { scope: 'RECENT', limit: 2 })
     expect(pool.map((item) => item.prompt).sort()).toEqual(['term8', 'term9'])
   })
 
@@ -124,15 +130,107 @@ describe('buildPracticePool with a recent-entries limit', () => {
       { ...word, id: 'w_a', term: 'a', createdAt: 5 },
       { ...word, id: 'w_c', term: 'c', createdAt: 5 },
     ]
-    const forwards = buildPracticePool(sameInstant, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', 2)
+    const forwards = buildPracticePool(sameInstant, [], 'WORDS_ONLY', 'SOURCE_TO_TARGET', { scope: 'RECENT', limit: 2 })
     const backwards = buildPracticePool(
       [...sameInstant].reverse(),
       [],
       'WORDS_ONLY',
       'SOURCE_TO_TARGET',
-      2,
+      { scope: 'RECENT', limit: 2 },
     )
     expect(forwards.map((i) => i.id)).toEqual(backwards.map((i) => i.id))
+  })
+})
+
+describe('buildPracticePool scoped to the entries answered wrong most often', () => {
+  const weakest = { scope: 'STRUGGLING', limit: 2 } as const
+
+  function wordWith(term: string, correct: number, wrong: number): Word {
+    return { ...word, id: `w_${term}`, term, stats: { correct, wrong } }
+  }
+
+  it('ignores entries with a clean record', () => {
+    const pool = buildPracticePool(
+      [wordWith('perfect', 9, 0), wordWith('missed', 1, 1), wordWith('untouched', 0, 0)],
+      [],
+      'WORDS_ONLY',
+      'SOURCE_TO_TARGET',
+      weakest,
+    )
+    // An entry never answered wrong is not a weakness, and one never
+    // practised at all is unknown rather than weak.
+    expect(pool.map((item) => item.prompt)).toEqual(['missed'])
+  })
+
+  it('comes back empty when nothing has been missed yet', () => {
+    const pool = buildPracticePool(
+      [wordWith('perfect', 3, 0)],
+      [],
+      'WORDS_ONLY',
+      'SOURCE_TO_TARGET',
+      weakest,
+    )
+    expect(pool).toEqual([])
+  })
+
+  it('ranks by the share of attempts missed, not the raw miss count', () => {
+    // 5 misses out of 50 is mostly known; 3 out of 3 is not known at all,
+    // even though it has fewer misses in absolute terms.
+    const pool = buildPracticePool(
+      [wordWith('mostlyKnown', 45, 5), wordWith('neverRight', 0, 3)],
+      [],
+      'WORDS_ONLY',
+      'SOURCE_TO_TARGET',
+      { scope: 'STRUGGLING', limit: 1 },
+    )
+    expect(pool.map((item) => item.prompt)).toEqual(['neverRight'])
+  })
+
+  it('prefers the better-evidenced weakness when two rates tie', () => {
+    // Both are missed half the time, but one has ten times the attempts
+    // behind it, so it is the more trustworthy signal.
+    const pool = buildPracticePool(
+      [wordWith('thin', 1, 1), wordWith('thick', 10, 10)],
+      [],
+      'WORDS_ONLY',
+      'SOURCE_TO_TARGET',
+      { scope: 'STRUGGLING', limit: 1 },
+    )
+    expect(pool.map((item) => item.prompt)).toEqual(['thick'])
+  })
+
+  it('draws weak phrases alongside weak words in Hybrid', () => {
+    const weakPhrase: Phrase = { ...phrase, id: 'p_weak', stats: { correct: 0, wrong: 4 } }
+    const pool = buildPracticePool(
+      [wordWith('alsoWeak', 0, 4)],
+      [weakPhrase],
+      'HYBRID',
+      'SOURCE_TO_TARGET',
+      weakest,
+    )
+    expect(pool).toHaveLength(2)
+    expect(pool.map((item) => item.kind).sort()).toEqual(['phrase', 'word'])
+  })
+
+  it('respects the game type filter', () => {
+    const weakPhrase: Phrase = { ...phrase, id: 'p_weak', stats: { correct: 0, wrong: 9 } }
+    const pool = buildPracticePool(
+      [wordWith('weakWord', 0, 1)],
+      [weakPhrase],
+      'WORDS_ONLY',
+      'SOURCE_TO_TARGET',
+      weakest,
+    )
+    expect(pool.map((item) => item.prompt)).toEqual(['weakWord'])
+  })
+
+  it('counts what the scope has to offer, scoped to the game type', () => {
+    const words = [wordWith('a', 0, 1), wordWith('b', 5, 0)]
+    const phrases: Phrase[] = [{ ...phrase, id: 'p_weak', stats: { correct: 0, wrong: 2 } }]
+
+    expect(countWithMistakes(words, phrases, 'HYBRID')).toBe(2)
+    expect(countWithMistakes(words, phrases, 'WORDS_ONLY')).toBe(1)
+    expect(countWithMistakes(words, phrases, 'PHRASES_ONLY')).toBe(1)
   })
 })
 
