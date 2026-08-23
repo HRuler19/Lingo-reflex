@@ -1,7 +1,7 @@
 {
   "name": "lexipulse",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local-first vocabulary and phrase trainer with time-pressured typing practice.",
   "author": "Hangeldi Cholukov",
   "type": "module",

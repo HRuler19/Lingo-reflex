@@ -47,11 +47,22 @@ Prebuilt apps are attached to every [**GitHub Release**](https://github.com/HRul
 | Platform | File | Notes |
 |---|---|---|
 | **macOS** (Apple Silicon) | `LexiPulse_*_aarch64.dmg` | ~2.3MB · unsigned, see [first launch](#first-launch-on-macos) |
-| **macOS** (Intel) | `LexiPulse_*_x64.dmg` | unsigned, see [first launch](#first-launch-on-macos) |
-| **Windows** | `LexiPulse_*_x64-setup.exe` | SmartScreen may warn on first run |
-| **Linux** | `lexipulse_*_amd64.AppImage` | `chmod +x` then run |
-| **Android** | `LexiPulse-*.apk` | Sideload — see [installing on Android](#installing-on-android) |
-| **iPhone / iPad** | — | Install as a PWA — see [iOS](#ios) |
+| **macOS** (Intel) | `LexiPulse_*_x64.dmg` | ~2.4MB · unsigned, see [first launch](#first-launch-on-macos) |
+| **iPhone / iPad** | `LexiPulse-*-unsigned.ipa` | Or install as a PWA — see [iOS](#ios) |
+| **Windows** | `LexiPulse_*_x64-setup.exe` | Built by CI — see [availability](#platform-availability) |
+| **Linux** | `lexipulse_*_amd64.AppImage` | Built by CI — see [availability](#platform-availability) |
+| **Android** | `LexiPulse-*.apk` | Built by CI — see [availability](#platform-availability) |
+
+#### Platform availability
+
+The macOS and iOS artifacts are built on a Mac and are attached to releases
+directly. The Windows, Linux and Android artifacts come from the release
+workflow, which needs GitHub Actions minutes on this repository — until that is
+enabled they will be missing from a release. None of them can be
+cross-compiled from macOS.
+
+On any platform without a native build, the web app installs as a PWA and is
+fully offline-capable — it never needed a network to begin with.
 
 #### Installing on Android
 

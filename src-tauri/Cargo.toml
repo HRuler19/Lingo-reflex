@@ -1,6 +1,6 @@
 [package]
 name = "lexipulse"
-version = "1.0.0"
+version = "1.1.0"
 description = "Local-first vocabulary and phrase trainer with time-pressured typing practice."
 authors = ["Hangeldi Cholukov"]
 license = "MIT"
