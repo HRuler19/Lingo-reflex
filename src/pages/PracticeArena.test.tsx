@@ -276,6 +276,8 @@ describe('PracticeArena', () => {
     const user = userEvent.setup()
     renderWithRouter(<PracticeArena />)
     await user.click(await screen.findByRole('button', { name: /start session/i }))
+    // Answer one prompt so there is a session worth saving in the first place.
+    await answerCurrentPrompt(user, { Water: 'Suw' })
     await user.keyboard('{Escape}')
 
     await waitFor(() => {
@@ -283,5 +285,42 @@ describe('PracticeArena', () => {
       expect(toast?.kind).toBe('error')
       expect(toast?.message).toContain('Could not save this session')
     }, DB_TIMEOUT)
+  })
+
+  it('does not record a session in which nothing was ever answered', async () => {
+    // Starting a session and immediately backing out is not practice.
+    // Recording it corrupted exactly the numbers this app exists to keep
+    // honest: it counted as an active day in the heatmap, extended the day
+    // streak, and added to the session total.
+    const pairId = await seedPair()
+    await seedWord(pairId, 'Water', ['Suw'])
+
+    const user = userEvent.setup()
+    renderWithRouter(<PracticeArena />)
+    await user.click(await screen.findByRole('button', { name: /start session/i }))
+    await screen.findByPlaceholderText(/type the translation/i)
+    await user.keyboard('{Escape}')
+
+    // The results screen still appears — the user gets told the round was
+    // empty rather than being silently bounced back.
+    expect(await screen.findByText(/here's how that round went/i)).toBeTruthy()
+    expect(await db.sessions.count()).toBe(0)
+  })
+
+  it('blocks the recent scope when there is nothing to take the newest of', async () => {
+    // Same reasoning as the weakness scope: a scope that can only produce an
+    // empty pool says so at the control instead of failing at Start.
+    await seedPair()
+
+    const user = userEvent.setup()
+    renderWithRouter(<PracticeArena />)
+
+    await user.click(await screen.findByRole('combobox', { name: 'Practice Scope' }))
+    await user.click(await screen.findByRole('option', { name: /most recently added/i }))
+
+    expect(await screen.findByText(/nothing to practise yet/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /start session/i }).hasAttribute('disabled')).toBe(
+      true,
+    )
   })
 })

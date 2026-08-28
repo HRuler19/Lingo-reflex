@@ -98,6 +98,12 @@ export function PracticeArena() {
     setPhase('results')
     if (!sessionPairId || !config) return
 
+    // A session where nothing was ever answered is not practice, and recording
+    // it corrupts exactly the numbers this app exists to keep honest: starting
+    // a session and immediately pressing Esc would otherwise count as an active
+    // day in the heatmap, extend the day streak, and add to the session total.
+    if (sessionResult.totalItems === 0) return
+
     // A whole practice session is on the line here, so a failed write has to
     // say so rather than quietly discarding the user's work.
     await runDbAction(
