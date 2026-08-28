@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseCsv, toCsv } from './csv'
+import { parseCsv, stripFormulaGuard, toCsv } from './csv'
 
 describe('toCsv', () => {
   it('joins rows with CRLF and fields with commas', () => {
@@ -27,6 +27,36 @@ describe('toCsv', () => {
 
   it('does not touch a field that merely contains one of those characters mid-string', () => {
     expect(toCsv([['price = 5']])).toBe('price = 5')
+  })
+})
+
+describe('stripFormulaGuard', () => {
+  it('restores every value the export guard quoted (regression)', () => {
+    // Without this the guard was not a guard but a mutation: exporting and
+    // reimporting turned "- so what" into "'- so what" permanently, and each
+    // further round trip added another quote.
+    for (const dangerous of ['=SUM(A1)', '+1+1', '- so what', '@home', '=HYPERLINK("evil")']) {
+      const [[encoded]] = parseCsv(toCsv([[dangerous]]))
+      expect(stripFormulaGuard(encoded)).toBe(dangerous)
+    }
+  })
+
+  it('round-trips a value that legitimately starts with an apostrophe', () => {
+    // The guard covers a leading quote too, precisely so this case and a
+    // guarded formula stay distinguishable on the way back in.
+    for (const original of ["'tis", "''double", "'"]) {
+      const [[encoded]] = parseCsv(toCsv([[original]]))
+      expect(stripFormulaGuard(encoded)).toBe(original)
+    }
+  })
+
+  it('leaves an unguarded value untouched', () => {
+    expect(stripFormulaGuard('Relentless')).toBe('Relentless')
+    expect(stripFormulaGuard('price = 5')).toBe('price = 5')
+  })
+
+  it('removes only the one quote the guard added', () => {
+    expect(stripFormulaGuard("''=SUM(A1)")).toBe("'=SUM(A1)")
   })
 })
 

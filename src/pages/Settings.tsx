@@ -13,7 +13,14 @@ import {
 import { db, newId, type LanguagePair } from '@/db/schema'
 import { useLanguagePairStore } from '@/store/language-pair-store'
 import { runDbAction } from '@/store/toast-store'
-import { downloadTextFile, exportCsv, exportJson, importCsv, importJson } from '@/lib/backup'
+import {
+  downloadTextFile,
+  exportCsv,
+  exportJson,
+  importCsv,
+  importJson,
+  type ImportSummary,
+} from '@/lib/backup'
 import { PageHeader } from '@/components/PageHeader'
 import { Mascot } from '@/components/Mascot'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -25,6 +32,24 @@ import { Separator } from '@/components/ui/separator'
 
 type StatusMessage = { kind: 'success' | 'error'; text: string }
 
+/**
+ * Which parser a chosen file needs, decided by what is actually in it.
+ *
+ * The file extension is a hint, not a fact — a CSV saved as .txt used to be
+ * handed to the JSON parser and reported as a raw syntax error. A backup is
+ * always a JSON object, so the first non-space character settles it.
+ */
+function looksLikeJson(text: string): boolean {
+  return text.trimStart().startsWith('{')
+}
+
+/** Reports what an import did, including the records it refused. */
+function describeImport(filename: string, summary: ImportSummary): string {
+  const entries = `${summary.imported} ${summary.imported === 1 ? 'entry' : 'entries'}`
+  const skipped = summary.skipped > 0 ? `, ${summary.skipped} skipped as unreadable` : ''
+  return `Imported ${filename} — ${entries}${skipped}.`
+}
+
 export function Settings() {
   const pairs = useLiveQuery(() => db.languagePairs.toArray(), [])
   const { selectedPairId, selectPair } = useLanguagePairStore()
@@ -33,6 +58,10 @@ export function Settings() {
   const [status, setStatus] = useState<StatusMessage | null>(null)
   const [resetDialogOpen, setResetDialogOpen] = useState(false)
   const [pairToDelete, setPairToDelete] = useState<LanguagePair | null>(null)
+  // Held rather than imported on selection: an import merges over what is
+  // already stored and can overwrite existing entries, which makes it as
+  // destructive as the deletes on this page — and those all confirm first.
+  const [fileToImport, setFileToImport] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleAddPair(e: React.FormEvent) {
@@ -92,26 +121,24 @@ export function Settings() {
     }
   }
 
-  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file) return
-    const isCsv = file.name.toLowerCase().endsWith('.csv')
+    // Cleared straight away so picking the same file twice still fires a
+    // change event — otherwise a cancelled import can't be retried.
+    e.target.value = ''
+    if (file) setFileToImport(file)
+  }
 
+  async function handleConfirmImport(file: File) {
     try {
       const text = await file.text()
-      if (isCsv) {
-        await importCsv(text)
-      } else {
-        await importJson(text)
-      }
-      setStatus({ kind: 'success', text: `Imported ${file.name} successfully.` })
+      const summary = looksLikeJson(text) ? await importJson(text) : await importCsv(text)
+      setStatus({ kind: 'success', text: describeImport(file.name, summary) })
     } catch (err) {
       setStatus({
         kind: 'error',
         text: err instanceof Error ? err.message : 'Could not import this file.',
       })
-    } finally {
-      e.target.value = ''
     }
   }
 
@@ -272,6 +299,15 @@ export function Settings() {
         description="This permanently deletes every language pair, word, phrase, and practice session stored in this browser. This can't be undone — export a backup first if you're not sure."
         confirmLabel="Delete Everything"
         onConfirm={handleConfirmReset}
+      />
+
+      <ConfirmDialog
+        open={!!fileToImport}
+        onOpenChange={(open) => !open && setFileToImport(null)}
+        title={fileToImport ? `Import "${fileToImport.name}"?` : ''}
+        description="Entries already in your library are merged with what this file contains — matching ones have their translations and stats combined, and a full JSON backup overwrites them outright. Export a backup first if you're not sure."
+        confirmLabel="Import"
+        onConfirm={() => fileToImport && void handleConfirmImport(fileToImport)}
       />
 
       <ConfirmDialog

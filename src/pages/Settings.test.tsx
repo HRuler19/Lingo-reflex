@@ -169,6 +169,21 @@ describe('Settings', () => {
     expect(useLanguagePairStore.getState().selectedPairId).toBeNull()
   })
 
+  /**
+   * Picks a file in the hidden input. The input is visually hidden and driven
+   * by a button, so the change is dispatched directly rather than by clicking
+   * an element the user can't see.
+   */
+  function chooseFile(container: HTMLElement, file: File) {
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(input, { target: { files: [file] } })
+  }
+
+  async function confirmImport(user: ReturnType<typeof userEvent.setup>) {
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /^import$/i }))
+  }
+
   it('imports a CSV, creating the pair and merging into existing words', async () => {
     const pairId = await seedPair('English', 'Turkmen')
     await seedWord(pairId, 'Relentless', ['Yadawsyz'])
@@ -179,12 +194,10 @@ describe('Settings', () => {
       'word,English,Turkmen,Water,Suw,0,0,0',
     ].join('\r\n')
 
+    const user = userEvent.setup()
     const { container } = render(<Settings />)
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement
-    const file = new File([csv], 'vocab.csv', { type: 'text/csv' })
-    // The input is visually hidden and driven by a button, so dispatch the
-    // change directly rather than simulating a click on a hidden element.
-    fireEvent.change(input, { target: { files: [file] } })
+    chooseFile(container, new File([csv], 'vocab.csv', { type: 'text/csv' }))
+    await confirmImport(user)
 
     await waitFor(async () => {
       const words = await db.words.where('pairId').equals(pairId).toArray()
@@ -198,13 +211,87 @@ describe('Settings', () => {
     expect(await screen.findByText(/imported vocab\.csv/i)).toBeTruthy()
   })
 
+  it('does not touch the database until the import is confirmed', async () => {
+    // An import merges over what is already stored and a JSON backup
+    // overwrites outright, which makes it as destructive as the deletes on
+    // this page — and those all confirm first.
+    await seedPair('English', 'Turkmen')
+    const csv = [
+      'type,sourceLanguage,targetLanguage,text,translations,correct,wrong,createdAt',
+      'word,English,Turkmen,Water,Suw,0,0,0',
+    ].join('\r\n')
+
+    const user = userEvent.setup()
+    const { container } = render(<Settings />)
+    chooseFile(container, new File([csv], 'vocab.csv', { type: 'text/csv' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/import "vocab\.csv"\?/i)).toBeTruthy()
+    expect(await db.words.count()).toBe(0)
+
+    await user.click(within(dialog).getByRole('button', { name: /^cancel$/i }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(await db.words.count()).toBe(0)
+  })
+
   it('reports a malformed CSV instead of failing silently', async () => {
     await seedPair()
+    const user = userEvent.setup()
     const { container } = render(<Settings />)
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement
-    const file = new File(['nonsense,header\r\n1,2'], 'bad.csv', { type: 'text/csv' })
-    fireEvent.change(input, { target: { files: [file] } })
+    chooseFile(container, new File(['nonsense,header\r\n1,2'], 'bad.csv', { type: 'text/csv' }))
+    await confirmImport(user)
 
     expect(await screen.findByText(/missing required columns/i)).toBeTruthy()
+  })
+
+  it('refuses a JSON file that is not a backup rather than writing it', async () => {
+    // The regression: whatever JSON.parse returned was written straight into
+    // IndexedDB. A word with no `stats` then crashed the practice pool
+    // builder, and one whose `translations` was not an array crashed the
+    // Library on render — a bad import could break the app for good.
+    await seedPair()
+    const user = userEvent.setup()
+    const { container } = render(<Settings />)
+    const junk = JSON.stringify({ words: [{ id: 'w1', pairId: 'p1', term: 'Broken' }] })
+    chooseFile(container, new File([junk], 'not-a-backup.json', { type: 'application/json' }))
+    await confirmImport(user)
+
+    expect(await screen.findByText(/no LexiPulse data to import/i)).toBeTruthy()
+    expect(await db.words.count()).toBe(0)
+  })
+
+  it('picks the parser from the file contents, not its extension', async () => {
+    // A CSV saved as .txt used to be handed to the JSON parser and reported
+    // as a raw syntax error.
+    await seedPair('English', 'Turkmen')
+    const csv = [
+      'type,sourceLanguage,targetLanguage,text,translations,correct,wrong,createdAt',
+      'word,English,Turkmen,Water,Suw,0,0,0',
+    ].join('\r\n')
+
+    const user = userEvent.setup()
+    const { container } = render(<Settings />)
+    chooseFile(container, new File([csv], 'vocab.txt', { type: 'text/plain' }))
+    await confirmImport(user)
+
+    await waitFor(async () => {
+      expect(await db.words.count()).toBe(1)
+    }, DB_TIMEOUT)
+  })
+
+  it('says how many records an import refused rather than reporting a clean run', async () => {
+    await seedPair('English', 'Turkmen')
+    const csv = [
+      'type,sourceLanguage,targetLanguage,text,translations,correct,wrong,createdAt',
+      'word,English,Turkmen,Water,Suw,0,0,0',
+      'word,English,Turkmen,Missing translations,,0,0,0',
+    ].join('\r\n')
+
+    const user = userEvent.setup()
+    const { container } = render(<Settings />)
+    chooseFile(container, new File([csv], 'partial.csv', { type: 'text/csv' }))
+    await confirmImport(user)
+
+    expect(await screen.findByText(/1 entry.*1 skipped/i)).toBeTruthy()
   })
 })
