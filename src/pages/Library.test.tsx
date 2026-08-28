@@ -45,6 +45,40 @@ describe('Library', () => {
     expect(screen.getByRole('tab', { name: /words \(1\)/i })).toBeTruthy()
   })
 
+  it('searches translations too, not just the term', async () => {
+    // Half of every entry is its translation, and looking one up by the word
+    // you do remember is the whole reason to search a bilingual library.
+    const pairId = await seedPair()
+    await seedWord(pairId, 'Relentless', ['Yadawsyz'])
+    await seedWord(pairId, 'Water', ['Suw'])
+    const user = userEvent.setup()
+    render(<Library />)
+
+    expect(await screen.findByText('Relentless')).toBeTruthy()
+    await user.type(screen.getByPlaceholderText(/search/i), 'yadaw')
+
+    await waitFor(() => {
+      expect(screen.queryByText('Water')).toBeNull()
+    })
+    expect(screen.getByText('Relentless')).toBeTruthy()
+  })
+
+  it('searches a phrase translation as well', async () => {
+    const pairId = await seedPair()
+    await seedPhrase(pairId, 'As far as I know', ['Meň bilşime görä'])
+    await seedPhrase(pairId, 'See you later', ['Soň görüşeris'])
+    const user = userEvent.setup()
+    render(<Library />)
+
+    await user.click(await screen.findByRole('tab', { name: /phrases/i }))
+    await user.type(screen.getByPlaceholderText(/search/i), 'bilşime')
+
+    await waitFor(() => {
+      expect(screen.queryByText('See you later')).toBeNull()
+    })
+    expect(screen.getByText('As far as I know')).toBeTruthy()
+  })
+
   it('matches search case-insensitively', async () => {
     const pairId = await seedPair()
     await seedWord(pairId, 'Relentless', ['Yadawsyz'])

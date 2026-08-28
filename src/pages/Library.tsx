@@ -35,12 +35,17 @@ export function Library() {
     [selectedPairId],
   )
 
-  const filteredWords = words?.filter((w) =>
-    w.term.toLowerCase().includes(search.toLowerCase()),
-  )
-  const filteredPhrases = phrases?.filter((p) =>
-    p.phrase.toLowerCase().includes(search.toLowerCase()),
-  )
+  // Translations are searched alongside the term, not just the term: half of
+  // every entry is its translation, and looking one up by the word you *do*
+  // remember is the whole reason to search a bilingual library.
+  const query = search.trim().toLowerCase()
+  const matches = (text: string, translations: string[]) =>
+    query === '' ||
+    text.toLowerCase().includes(query) ||
+    translations.some((t) => t.toLowerCase().includes(query))
+
+  const filteredWords = words?.filter((w) => matches(w.term, w.translations))
+  const filteredPhrases = phrases?.filter((p) => matches(p.phrase, p.translations))
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,7 +68,7 @@ export function Library() {
           <div className="relative max-w-sm">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search words and phrases…"
+              placeholder="Search words, phrases and translations…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
