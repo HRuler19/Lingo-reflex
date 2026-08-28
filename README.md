@@ -87,13 +87,20 @@ The native iOS project is still in the repo and builds fine locally
 
 #### First launch on macOS
 
-The desktop builds aren't notarized (that needs a paid Apple Developer account),
-so Gatekeeper blocks them by default. Right-click the app → **Open** → **Open**,
-or run once:
+These builds are ad-hoc signed but not notarized (notarizing requires a paid
+Apple Developer account), so macOS quarantines them on download and refuses to
+open them — sometimes with the misleading message *"LexiPulse is damaged and
+can't be opened"*. The app is not damaged; that is what Gatekeeper says about
+an app it cannot verify.
+
+Run this once after dragging it to Applications:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/LexiPulse.app
 ```
+
+Then open it normally. Right-click → Open does **not** reliably work for an
+un-notarized app on Apple Silicon; removing the quarantine attribute does.
 
 ---
 
