@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Moon, Sun } from 'lucide-react'
 import { db } from '@/db/schema'
@@ -17,6 +18,17 @@ export function Header() {
   const pairs = useLiveQuery(() => db.languagePairs.toArray(), [])
   const { selectedPairId, selectPair } = useLanguagePairStore()
   const { theme, toggleTheme } = useThemeStore()
+
+  // The selected pair id is persisted, so it outlives the pair itself: a
+  // restored backup brings different ids, and a pair deleted in another tab
+  // leaves this one pointing at nothing. Every page then scopes its queries to
+  // an id that matches no rows and shows an empty library rather than the
+  // "select a language pair" prompt, which reads as data loss. This header is
+  // mounted on every page, so clearing it here covers all of them.
+  useEffect(() => {
+    if (!pairs || !selectedPairId) return
+    if (!pairs.some((pair) => pair.id === selectedPairId)) selectPair(null)
+  }, [pairs, selectedPairId, selectPair])
 
   return (
     // min-h-14 (not h-14) + a safe-area-aware padding-top: on a notched/
