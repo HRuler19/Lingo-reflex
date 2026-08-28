@@ -67,7 +67,10 @@ export function PreGameConfig({ disabled, error, words, phrases, onStart }: PreG
   const needsLimit = scope !== 'ALL'
   // A scope that can only produce an empty pool is blocked here rather than
   // failing at Start, so the reason sits next to the control that caused it.
-  const scopeIsEmpty = scope === 'STRUGGLING' && withMistakes === 0
+  // That applies to any narrowed scope with nothing to narrow, not just the
+  // weakness one — asking for the newest 20 of an empty library was still
+  // letting the user press Start and collect an error.
+  const scopeIsEmpty = needsLimit && (scope === 'STRUGGLING' ? withMistakes === 0 : available === 0)
 
   const scopeHint =
     scope === 'ALL'
@@ -75,9 +78,11 @@ export function PreGameConfig({ disabled, error, words, phrases, onStart }: PreG
       : !limitIsValid
         ? 'Enter how many entries to practise — 1 or more.'
         : scope === 'RECENT'
-          ? parsedLimit >= available
-            ? `You have ${entryCount(available)} in total, so this practises all of them.`
-            : `Only the ${parsedLimit} newest of your ${entryCount(available)}.`
+          ? available === 0
+            ? 'Nothing to practise yet — add some entries for this game type first.'
+            : parsedLimit >= available
+              ? `You have ${entryCount(available)} in total, so this practises all of them.`
+              : `Only the ${parsedLimit} newest of your ${entryCount(available)}.`
           : withMistakes === 0
             ? 'Nothing to drill yet — this scope uses entries you have answered wrong at least once.'
             : parsedLimit >= withMistakes
