@@ -19,7 +19,10 @@ const GROUP_FILL = 0.55
 
 const SERIES = [
   { key: 'correct', label: 'Correct', color: 'var(--success)' },
-  { key: 'wrong', label: 'Wrong', color: 'var(--info)' },
+  // Wrong reads as destructive everywhere else in the app (the practice
+  // counters, the result screen); a blue "wrong" bar made this the one place
+  // the colour language broke.
+  { key: 'wrong', label: 'Wrong', color: 'var(--destructive)' },
 ] as const
 
 interface HoveredBar {

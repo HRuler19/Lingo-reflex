@@ -17,9 +17,10 @@ export function Toaster() {
 
   return (
     <div
-      // Errors interrupt; confirmations wait their turn. Since one region
-      // can only carry one politeness level, this is the assertive one and
-      // individual toasts set their own role below.
+      // One region can only carry one politeness level, so it stays polite
+      // and each toast sets its own role below — role="alert" for errors,
+      // which interrupt, and role="status" for confirmations, which wait
+      // their turn.
       aria-live="polite"
       aria-atomic="false"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-100 flex flex-col items-center gap-2 p-4 sm:items-end"

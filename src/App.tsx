@@ -2,7 +2,7 @@ import { lazy } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 
-// Route-level code splitting: Recharts (Dashboard) and the Practice Arena
+// Route-level code splitting: the Dashboard's charts and the Practice Arena
 // game engine are the heaviest pages, so keep them out of the initial bundle.
 // The loading fallback for these lives inside AppLayout, wrapping only the
 // routed content — not here — so a not-yet-fetched chunk doesn't blank out
@@ -19,14 +19,14 @@ const NotFound = lazy(() => import('@/pages/NotFound').then((m) => ({ default: m
 
 function App() {
   return (
-    // HashRouter, not BrowserRouter: the app now ships as a static SPA
-    // across several hosts that can't all be given a server-side rewrite
-    // rule — a Capacitor native shell, a packaged Electron app loading
-    // dist/index.html over file://, and the PWA's offline service-worker
-    // cache all need every route to resolve from the exact same on-disk
-    // entry point. A hash route never asks the host to resolve "/practice"
-    // as a real path in the first place, so it works identically everywhere
-    // without per-host routing config.
+    // HashRouter, not BrowserRouter: the app ships as a static SPA across
+    // several hosts that can't all be given a server-side rewrite rule — the
+    // Capacitor native shells, the Tauri desktop build serving the bundle
+    // from its own protocol, and the PWA's offline service-worker cache all
+    // need every route to resolve from the exact same on-disk entry point. A
+    // hash route never asks the host to resolve "/practice" as a real path in
+    // the first place, so it works identically everywhere without per-host
+    // routing config.
     <HashRouter>
       <Routes>
         <Route element={<AppLayout />}>

@@ -12,13 +12,19 @@ obsession.
 
 ## Technical Stack & Architecture
 
-- **Framework:** Next.js 14+ (App Router) or React (Vite)
-- **Styling:** Tailwind CSS + Shadcn UI + Lucide Icons
+As built (this section records what was chosen, not what was on the menu):
+
+- **Framework:** React + Vite, routed with HashRouter so every shell resolves
+  routes from one on-disk entry point
+- **Styling:** Tailwind CSS + Shadcn UI (on Base UI) + Lucide Icons
 - **State Management:** Zustand
-- **Database (Local NoSQL):** IndexedDB via RxDB / Dexie.js
+- **Database (Local NoSQL):** IndexedDB via Dexie.js
   (strictly client-side, offline, no backend server)
-- **Charts/Analytics:** Recharts
+- **Charts/Analytics:** hand-rolled SVG (`components/dashboard/chart-math.ts`).
+  Recharts was the original pick and was dropped — it cost ~110KB gzip, about
+  95% of the Dashboard bundle, to draw two area charts and one bar chart.
 - **Theme:** Dark/Light mode toggle in Header (persisted in LocalStorage)
+- **Packaging:** PWA for the web, Capacitor for iOS/Android, Tauri for desktop
 
 ---
 
@@ -68,7 +74,7 @@ obsession.
   "id": "s_301",
   "pairId": "pair_en_tk",
   "mode": "WORDS_ONLY" | "PHRASES_ONLY" | "HYBRID",
-  "direction": "SOURCE_TO_TARGET" | "TARGET_TO_SOURCE",
+  "direction": "SOURCE_TO_TARGET" | "TARGET_TO_SOURCE" | "MIXED",
   "totalDurationSec": 300,
   "usedDurationSec": 300,
   "timePerItemSec": 10,
@@ -98,7 +104,7 @@ obsession.
 - Filters: Day, Week, Month, Year, All Time.
 - Charts:
   - Activity Heatmap (GitHub-style consistency map).
-  - Accuracy & Speed Trends (Recharts).
+  - Accuracy & Speed Trends.
   - Words vs. Phrases Mastery comparison.
 
 #### [2] ➕ Add Word
@@ -117,9 +123,12 @@ obsession.
 
 - **Pre-Game Configuration Modal:**
   - Game Type: Words Only, Phrases Only, or Hybrid (Words + Phrases).
-  - Direction: Source -> Target or Target -> Source (Reverse).
+  - Direction: Source -> Target, Target -> Source (Reverse), or Mixed, which
+    rolls the direction independently per item.
   - Session Duration: 3m, 5m, 10m, 15m, 30m, 1h.
   - Per-Item Time Limit (Difficulty): 5s, 10s, 20s, 30s, 1m.
+  - Practice Scope: the whole library, the N most recently added entries, or
+    the N answered wrong most often.
 - **Game Screen:**
   - Clean focus mode. Auto-focused input field.
   - Real-time countdown timer bar.
@@ -139,7 +148,9 @@ obsession.
 - Universal Language Pair Manager (add/remove pairs like EN-TK, DE-EN).
 - Export Data: one-click JSON full backup export and CSV export.
 - Import Data: JSON/CSV upload parser to restore or transfer database across
-  devices without data loss.
+  devices without data loss. The file is untrusted input — every record is
+  validated before it is written, and the import confirms first, because it
+  merges over (and can overwrite) what is already stored.
 - Clear/Reset database option.
 
 ---

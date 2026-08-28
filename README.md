@@ -12,7 +12,7 @@ speed are moving. No account, no backend, no network. Your data never leaves
 your device.
 
 [![CI](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml/badge.svg)](https://github.com/HRuler19/Lingo-reflex/actions/workflows/ci.yml)
-&nbsp;![Tests](https://img.shields.io/badge/tests-157%20passing-brightgreen)
+&nbsp;![Tests](https://img.shields.io/badge/tests-188%20passing-brightgreen)
 &nbsp;![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
 &nbsp;![License](https://img.shields.io/badge/license-MIT-blue)
 
