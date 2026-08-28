@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { safeLocalStorage } from './persist-storage'
 
 export type Theme = 'light' | 'dark'
 
@@ -10,6 +11,10 @@ interface ThemeState {
 }
 
 function applyThemeClass(theme: Theme) {
+  // Rehydration runs at import time, which for a non-DOM test environment is
+  // before (and without) any document at all — the class is simply not
+  // applicable there, rather than an error.
+  if (typeof document === 'undefined') return
   document.documentElement.classList.toggle('dark', theme === 'dark')
 }
 
@@ -33,6 +38,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'lexipulse-theme',
+      storage: createJSONStorage(safeLocalStorage),
       onRehydrateStorage: () => (state) => {
         if (state) applyThemeClass(state.theme)
       },

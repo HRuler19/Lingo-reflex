@@ -6,15 +6,30 @@ on:
   pull_request:
     branches: [main]
 
+# Nothing here needs to write to the repository.
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      # One Node's failure shouldn't hide whether the other is fine.
+      fail-fast: false
+      matrix:
+        # Both the floor this project supports and a current release. Pinning
+        # only the floor once hid a suite that failed on every newer Node: a
+        # global the runtime had since added made the jsdom environment resolve
+        # `localStorage` to undefined, and nothing in CI ever ran there.
+        node-version: [22, 26]
+
+    name: build-and-test (Node ${{ matrix.node-version }})
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: npm
 
       - run: npm ci

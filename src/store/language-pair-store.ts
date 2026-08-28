@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { safeLocalStorage } from './persist-storage'
 
 interface LanguagePairState {
   selectedPairId: string | null
@@ -13,6 +14,6 @@ export const useLanguagePairStore = create<LanguagePairState>()(
       selectedPairId: null,
       selectPair: (pairId) => set({ selectedPairId: pairId }),
     }),
-    { name: 'lexipulse-selected-pair' },
+    { name: 'lexipulse-selected-pair', storage: createJSONStorage(safeLocalStorage) },
   ),
 )

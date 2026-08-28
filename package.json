@@ -5,6 +5,9 @@
   "description": "Local-first vocabulary and phrase trainer with time-pressured typing practice.",
   "author": "Hangeldi Cholukov",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
