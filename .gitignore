@@ -16,6 +16,7 @@ dist-ssr
 # are checked in — they're configuration, not artifacts — and each carries its
 # own .gitignore for the products of building them.
 release
+release-artifacts
 src-tauri/target
 src-tauri/gen/schemas
 
